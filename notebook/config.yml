@@ -1,0 +1,3 @@
+dataset:
+    path: ..\..\data
+    num_frames: 65
