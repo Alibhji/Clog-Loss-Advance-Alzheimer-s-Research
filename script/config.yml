@@ -1,0 +1,6 @@
+# The Code written by Ali Babolhaveji @ 6/1/2020
+
+dataset:
+    path: ..\..\data
+    num_frames: 65
+    credentials_path: ..\..\data\credentials.yml
