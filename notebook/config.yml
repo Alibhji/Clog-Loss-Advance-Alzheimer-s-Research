@@ -1,3 +1,4 @@
 dataset:
     path: ..\..\data
     num_frames: 65
+    credentials_path: ..\..\data\credentials.yml
