@@ -6,6 +6,7 @@ import cv2
 import numpy as np
 import ipyvolume as ipv
 import joblib # joblib version: 0.9.4
+import pickle
 
 
 class ClogLossDataset_downloader:
@@ -33,6 +34,8 @@ class ClogLossDataset_downloader:
 #         self.df_dataset = metaData[metaData['filename'].isin(df['filename'])]
 #         self.df_dataset['stalled'] =label[label['filename'].isin(df['filename'])]['stalled']
         self.df_dataset['vid_id'] = self.df_dataset.index
+        with open(os.path.join(config['dataset']['path'],'whole_train_dataset.pandas'),'wb') as handel:
+            pickle.dump(self.df_dataset , handel ,protocol=pickle.HIGHEST_PROTOCOL)
         
         
         if online_data:
@@ -73,6 +76,9 @@ class ClogLossDataset_downloader:
         lim_flag = self.cfg['dataset']['filter']['limit']['flag']
         if lim_flag:
             self.df_dataset = self.df_dataset.iloc[lim_min :lim_max]
+            
+        with open(os.path.join(self.saveDatasetDir, f"{os.path.basename(self.saveDatasetDir)}.pandas"),'wb') as handel:
+            pickle.dump(self.df_dataset , handel ,protocol=pickle.HIGHEST_PROTOCOL)
             
         self.number_of_objec = len(self.df_dataset)
         self.current_row=0
