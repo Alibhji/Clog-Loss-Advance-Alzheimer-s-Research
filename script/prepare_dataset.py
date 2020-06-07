@@ -13,13 +13,19 @@ import multiprocessing
 from multiprocessing.dummy import Pool as ThreadPool
 from multiprocessing  import  cpu_count
 cpu_count =4
+counter =0
 
 def call_a_video(index):
+    global counter ,dataset_len
+    counter +=1
     video_downloder[index]
+    print(f"{counter:6d} / {dataset_len} --> {(counter / dataset_len) * 100:02.5f} %")
+    return index
 
 def calculateParallel( threads= cpu_count):
     pool = ThreadPool(threads)
     results = pool.map(call_a_video, indexes)
+    #print(results)
     pool.close()
     pool.join()
     return results
@@ -27,7 +33,7 @@ def calculateParallel( threads= cpu_count):
 def run_multi_proc() : 
 
     runprocess = calculateParallel( threads=cpu_count)
-    print('\n - \n')
+    #print('\n runprocess \n')
     # j = tqdm(squaredNumbers)
     # j.set_description(f'Creating pandas dataset...')
     # for n in j:
@@ -46,8 +52,10 @@ with open (config , 'rb') as f:
     config = yaml.load(f ,Loader=yaml.FullLoader)
 
 video_downloder = ClogLossDataset_downloader(config )
-print(len(video_downloder))
-indexes = range(len(video_downloder))
+
+dataset_len = len(video_downloder)
+print(dataset_len)
+indexes = range(dataset_len)
 
 run_multi_proc()
 
