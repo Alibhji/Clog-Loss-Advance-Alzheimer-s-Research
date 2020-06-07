@@ -168,7 +168,7 @@ class ClogLossDataset(Dataset):
         tensor_img = np.array(list(tensor_img) ,dtype=np.float32)
         # print(tensor_img.shape)
 
-        #         self.draw_tensor(tensor_img)
+        # self.draw_tensor(tensor_img)
         #         print(row)
         tensor_img = np.moveaxis(tensor_img, 3, 0)
 

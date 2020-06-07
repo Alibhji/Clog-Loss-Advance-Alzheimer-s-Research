@@ -2,3 +2,6 @@ dataset:
     path: ..\..\data
     num_frames: 65
     credentials_path: ..\..\data\credentials.yml
+    remove_donloaded_video : True
+    save_dir : ..\..\data\generated_Tensors
+    
