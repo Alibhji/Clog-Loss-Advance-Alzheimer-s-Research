@@ -9,11 +9,8 @@ if not package_path in sys.path:
 from lib import ClogLossDataset_downloader
 import yaml
 from tqdm import tqdm
-import multiprocessing
 from multiprocessing.dummy import Pool as ThreadPool
 from multiprocessing  import  cpu_count
-cpu_count =4
-counter =0
 
 def call_a_video(index):
     global counter ,dataset_len
@@ -50,11 +47,17 @@ def run_multi_proc() :
 config = './config.yml'
 with open (config , 'rb') as f:
     config = yaml.load(f ,Loader=yaml.FullLoader)
+    
+    
+cpu_count = config['dataset']['Multiprocessing_num_cores']
+counter =0
+
 
 video_downloder = ClogLossDataset_downloader(config )
 
 dataset_len = len(video_downloder)
-print(dataset_len)
+print("The dataset len is :" ,dataset_len)
+print("Number of cores    :" ,cpu_count)
 indexes = range(dataset_len)
 
 run_multi_proc()

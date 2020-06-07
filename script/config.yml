@@ -4,4 +4,5 @@ dataset:
     credentials_path: ..\..\data\credentials.yml
     remove_donloaded_video : True
     save_dir : ..\..\data\generated_Tensors
+    Multiprocessing_num_cores : 4
     
