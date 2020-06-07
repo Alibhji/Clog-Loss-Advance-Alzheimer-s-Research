@@ -30,21 +30,13 @@ def calculateParallel( threads= cpu_count):
 def run_multi_proc() : 
 
     runprocess = calculateParallel( threads=cpu_count)
-    #print('\n runprocess \n')
-    # j = tqdm(squaredNumbers)
-    # j.set_description(f'Creating pandas dataset...')
-    # for n in j:
-        # tt = pd.DataFrame.from_dict(n, orient='index')
-        # Dataset_pd = Dataset_pd.append(tt ,ignore_index=True )
-        ##print(pd.DataFrame(n))
-    # return Dataset_pd
+
     
-    
+# config = './config.yml'
+config = '../script/configs/download/config_flowing.yml'
+# config = '../script/configs/download/config_stall.yml'
 
 
-
-
-config = './config.yml'
 with open (config , 'rb') as f:
     config = yaml.load(f ,Loader=yaml.FullLoader)
     

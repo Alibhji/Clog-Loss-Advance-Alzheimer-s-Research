@@ -3,18 +3,18 @@ dataset:
     num_frames: 65
     credentials_path: ..\..\data\credentials.yml
     remove_donloaded_video : True
-    save_dir : ..\..\data\generated_Tensors
-    Multiprocessing_num_cores : 4
+    save_dir : ..\..\data\flowing_Tensors
+    Multiprocessing_num_cores : 7
     
     filter:
         limit :
-            flag: False
+            flag: True
             min: 0
-            max: 100
+            max: 5000
             
         tier1 : 
             - True
-            - False
+            # - False
         project_id :
             - A
             - C

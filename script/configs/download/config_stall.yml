@@ -3,8 +3,8 @@ dataset:
     num_frames: 65
     credentials_path: ..\..\data\credentials.yml
     remove_donloaded_video : True
-    save_dir : ..\..\data\generated_Tensors
-    Multiprocessing_num_cores : 4
+    save_dir : ..\..\data\stall_Tensors
+    Multiprocessing_num_cores : 7
     
     filter:
         limit :
@@ -14,7 +14,7 @@ dataset:
             
         tier1 : 
             - True
-            - False
+            # - False
         project_id :
             - A
             - C
@@ -28,13 +28,13 @@ dataset:
             - K               
             - M
         stalled:
-            - 0
-            #- 1
+            # - 0
+            - 1
             
         # num_frames: # depth limit
          # - 0 # Min
          # - 40 # Max
 
         crowd_score: # depth limit
-         - 0.0 # Min
-         - 0.0 # Max    
+         - 0.7 # Min
+         - 1.0 # Max    

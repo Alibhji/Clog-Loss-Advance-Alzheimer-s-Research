@@ -35,7 +35,7 @@ class ClogLossDataset_downloader:
         self.df_dataset['vid_id'] = self.df_dataset.index
         
         
-        if True:
+        if online_data:
             self.download_fldr = 'downloded_data' 
             self.download_fldr = os.path.join(self.dataPath ,self.download_fldr )
             if not os.path.exists(f"./{self.download_fldr}"):
@@ -65,8 +65,82 @@ class ClogLossDataset_downloader:
             self.df_dataset = self.df_dataset[metaData['filename'].isin(df['filename'])]
             self.df_dataset = self.df_dataset.reset_index(drop = True)
             
+        # filter dataset
+        self.filter_dataset()
+        # limit_data
+        lim_min = self.cfg['dataset']['filter']['limit']['min']
+        lim_max = self.cfg['dataset']['filter']['limit']['max']
+        lim_flag = self.cfg['dataset']['filter']['limit']['flag']
+        if lim_flag:
+            self.df_dataset = self.df_dataset.iloc[lim_min :lim_max]
+            
         self.number_of_objec = len(self.df_dataset)
         self.current_row=0
+        
+        
+        
+    def filter_dataset(self):
+        filter_dict={}
+        
+        def apply_filter_each_row(row, filter_vector, col_name):
+                return [True ,False][row[col_name] in filter_vector]
+            
+            
+        
+        try:
+            filter_dict["tier1"] = self.cfg['dataset']['filter']['tier1']
+        except:
+            pass
+        
+        try:
+            filter_dict["project_id"] = self.cfg['dataset']['filter']['project_id']
+        except:
+            pass
+        
+        try:
+            filter_dict["stalled"] = self.cfg['dataset']['filter']['stalled']
+        except:
+            pass
+        
+        try:
+            filter_dict["num_frames"] = self.cfg['dataset']['filter']['num_frames']
+        except:
+            pass
+        
+        try:
+            filter_dict["crowd_score"] = self.cfg['dataset']['filter']['crowd_score']
+        except:
+            pass
+        
+        print(filter_dict)
+        
+        for key_ , filter_vec in filter_dict.items():
+            
+            if key_ in ['num_frames' ,'crowd_score']:
+#                 print("--------------->",filter_vec , filter_vec[0])
+                # filter more than max value
+                filter_ = (self.df_dataset[self.df_dataset[key_] < filter_vec[0]].index.to_list()) 
+                self.df_dataset = self.df_dataset.drop(filter_).reset_index(drop=True)
+                
+                # filter less than min value
+                filter_ = self.df_dataset[self.df_dataset[key_] > filter_vec[1]].index.to_list()
+                self.df_dataset = self.df_dataset.drop(filter_).reset_index(drop=True)
+
+                
+            else:
+            
+                filtred_indexex = self.df_dataset.apply(lambda row: apply_filter_each_row(row, filter_vec, key_),
+                                                               axis=1)
+
+                outliers = self.df_dataset[filtred_indexex].index.to_list()
+                self.df_dataset = self.df_dataset.drop(outliers).reset_index(drop=True)
+            
+            
+
+        
+    
+        
+        
         
     def getFrame( self , vidcap , sec , image_name ):
         vidcap.set(cv2.CAP_PROP_POS_MSEC, sec * 1000)
@@ -120,7 +194,9 @@ class ClogLossDataset_downloader:
     def draw_tensor(tensor_img):
 
         ipv.figure()
-        ipv.volshow(tensor_img[...,0], level=[0.36, 0.55,1], opacity=[0.11,0.13, 0.13], level_width=0.05, data_min=0, data_max=1 ,lighting=True)
+#         ipv.volshow(tensor_img[...,0], level=[0.36, 0.55,1], opacity=[0.11,0.13, 0.13], level_width=0.05, data_min=0, data_max=1 ,lighting=True)
+        ipv.volshow(tensor_img[...,0], level=[0.36, 0.17,0.36], opacity=[0.05,0.13, 0.10], level_width=0.05, data_min=0, data_max=1 ,lighting=True)
+        
         ipv.view(-30, 45)
         ipv.show()
         
@@ -170,13 +246,13 @@ class ClogLossDataset_downloader:
                 image = self.filter_image(image , mask, area)
                 tensor_img.append(image)
                 
-            if frame >= 199:
-                break
+            # if frame >= 199:
+                # break
             
             
-        if  len(tensor_img) < 200:
-            for kk in range(200 - len(tensor_img) ):
-                tensor_img.append(list(np.zeros([150,150,3])))
+        # if  len(tensor_img) < 200:
+            # for kk in range(200 - len(tensor_img) ):
+                # tensor_img.append(list(np.zeros([150,150,3])))
                 
 #         print(len(tensor_img))
         vidcap.release()  
