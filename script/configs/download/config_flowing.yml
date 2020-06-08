@@ -1,16 +1,16 @@
 dataset:
-    path: ..\..\data
+    path: /home/mjamali/proj/B/data
     num_frames: 65
-    credentials_path: ..\..\data\credentials.yml
+    credentials_path: /home/mjamali/proj/B/data/credentials.yml
     remove_donloaded_video : True
-    save_dir : ..\..\data\flowing_Tensors
-    Multiprocessing_num_cores : 7
+    save_dir : /home/mjamali/proj/B/data/flowing_Tensors
+    Multiprocessing_num_cores : 35
     
     filter:
         limit :
             flag: True
             min: 0
-            max: 5000
+            max: 50000
             
         tier1 : 
             - True

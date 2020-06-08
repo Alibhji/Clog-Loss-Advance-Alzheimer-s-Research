@@ -18,9 +18,10 @@ class ClogLossDataset_downloader:
         self.remove = config['dataset']['remove_donloaded_video']
         self.draw_3d = draw_3d
         self.saveDatasetDir  = config['dataset']['save_dir']
+        self.download_fldr = 'downloded_data' 
         
-        if not os.path.exists(self.saveDatasetDir):
-            os.makedirs(self.saveDatasetDir)
+       # if not os.path.exists(self.download_fldr):
+           # os.makedirs(self.download_fldr)
         
         metaData = os.path.join(self.dataPath ,'train_metadata.csv')
         metaData = pd.read_csv(metaData)
@@ -39,9 +40,9 @@ class ClogLossDataset_downloader:
         
         
         if online_data:
-            self.download_fldr = 'downloded_data' 
+            
             self.download_fldr = os.path.join(self.dataPath ,self.download_fldr )
-            if not os.path.exists(f"./{self.download_fldr}"):
+            if not os.path.exists(f"./{self.saveDatasetDir}"):
                 os.mkdir(self.saveDatasetDir)
             credentials_path = config['dataset']['credentials_path']
             with open (credentials_path , 'rb') as f:

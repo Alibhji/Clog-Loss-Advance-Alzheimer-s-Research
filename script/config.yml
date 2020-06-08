@@ -17,12 +17,12 @@ model:
     
 
 dataset:
-    path: ..\..\data
+    path: /home/mjamali/proj/B/data
     num_frames: 65
-    credentials_path: ..\..\data\credentials.yml
+    credentials_path: /home/mjamali/proj/B/data/credentials.yml
     remove_donloaded_video : True
-    save_dir : ..\..\data\generated_Tensors
-    Multiprocessing_num_cores : 4
+    save_dir : /home/mjamali/proj/B/data/flowing_Tensors
+    Multiprocessing_num_cores : 7
     
     K: 10 # ten-fold train-val
     
