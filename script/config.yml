@@ -1,5 +1,9 @@
 
 train:
+    resultDirectoryName : result
+    experimentFolder : dir1
+    experimentName: exp1
+    
     trainBatchSize : 1
     valBatchSize : 1
     num_Workers : 0
@@ -9,6 +13,10 @@ train:
         init: 0.00001
         lr_decay :  0.5
         lr_decay_epoch : 10
+        
+options:
+    logger:
+        flag: True
     
 model:
     load:
