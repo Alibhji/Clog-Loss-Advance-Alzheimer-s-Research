@@ -1,4 +1,4 @@
-# The Code written by Ali Babolhaveji @ 6/1/2020
+# The Code written by Ali Babolhaveji @ 6/7/2020
 
 from torch.utils.data import Dataset
 import pandas as pd
@@ -12,8 +12,18 @@ import joblib
 import pickle
 
 
-# def extract_data(row):
-#     joblib.load()
+from sklearn.model_selection import KFold
+
+
+def genrate_K_folds(dataset_pd , K=2 , Fold =0 ,random_state=None ,shuffle=False):
+
+
+    kf = KFold(n_splits=K, random_state=random_state, shuffle=shuffle)
+    assert Fold < kf.n_splits , f"Fold number should be between [0 and {K-1}] but it is {Fold} "
+    for num,(train, val) in enumerate(kf.split(dataset_pd)):
+#         print(f"Fold-{num}",'train: %s, val: %s' % (train, val))
+        if Fold == num:
+            return train, val
     
 
 
@@ -188,11 +198,12 @@ class ClogLossDataset(Dataset):
 
 
 class ClogLossDataset_from_compressed_data(Dataset):
-    def __init__(self, config, split='train', type='train' , draw_3d = False):
+    def __init__(self, config, split='train', type='train' , draw_3d = False , fold=0):
         self.cfg = config
         self.dataPath = config['dataset']['path']
         self.draw_3d = draw_3d
-        
+        self.fold = fold
+        self.split =split
         with open (os.path.join(self.dataPath , 'flowing_Tensors','flowing_Tensors.pandas'),'rb') as handle:
             self.flowing_Tensors_pd = pickle.load(handle)
         self.flowing_Tensors_pd['folder_name'] = np.tile('flowing_Tensors',len(self.flowing_Tensors_pd))
@@ -223,6 +234,14 @@ class ClogLossDataset_from_compressed_data(Dataset):
         else:
             with open (os.path.join(self.dataPath, f"temp_balanced_dataset_pd.pandas"),'rb') as handle:
                 self.df_dataset = pickle.load(handle)
+                
+        train, val = genrate_K_folds(self.df_dataset, K=self.cfg['dataset']['K'], Fold=self.fold)
+        
+        if self.split == 'train':
+            self.df_dataset = self.df_dataset.iloc[train]
+
+        elif self.split == 'val':
+            self.df_dataset = self.df_dataset.iloc[val]
             
     #         print(self.df_dataset )
         
@@ -247,17 +266,20 @@ class ClogLossDataset_from_compressed_data(Dataset):
         tensor_img = data[0]
         meta = data [1]
         
-        print(tensor_img.mean())
+        #print(tensor_img.mean())
 #         tensor_img = tensor_img - tensor_img.mean()
         tensor_img = tensor_img/255.0
         
         if tensor_img.shape[0]<199:
-            print(tensor_img.shape[0])
+            #print(tensor_img.shape[0])
             tensor_img = np.append(tensor_img , np.zeros((200 - len(tensor_img),150, 150, 3)),axis=0)
         
 #         print(tensor_img.mean())
         if self.draw_3d:
             self.draw_tensor(tensor_img)
+        meta['tier1']= str(meta['tier1'])
+        tensor_img = np.moveaxis(tensor_img ,3,0)
+        tensor_img = tensor_img.astype(np.float32)
 
         return tensor_img , meta
 

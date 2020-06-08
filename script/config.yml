@@ -1,3 +1,21 @@
+
+train:
+    trainBatchSize : 1
+    valBatchSize : 1
+    num_Workers : 0
+    startEpoch : 0
+    endEpoch :   50
+    lr:
+        init: 0.00001
+        lr_decay :  0.5
+        lr_decay_epoch : 10
+    
+model:
+    load:
+        flag: False
+        path: "./"
+    
+
 dataset:
     path: ..\..\data
     num_frames: 65
@@ -5,6 +23,8 @@ dataset:
     remove_donloaded_video : True
     save_dir : ..\..\data\generated_Tensors
     Multiprocessing_num_cores : 4
+    
+    K: 10 # ten-fold train-val
     
     filter:
         limit :
