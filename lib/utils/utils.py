@@ -7,6 +7,114 @@ import numpy as np
 import ipyvolume as ipv
 import joblib # joblib version: 0.9.4
 import pickle
+import errno
+
+import shutil
+import logging
+from torch.utils.tensorboard import SummaryWriter
+SummaryWriter._PRINT_DEPRECATION_WARNINGS = False
+
+
+class create_new_experiment:
+    def __init__(self, cfg):
+        self.cfg = cfg
+    
+        self.experiment_name = f"{cfg['train']['experimentName']}_from_e_{cfg['train']['startEpoch']:03d}" \
+                          f"_to_{cfg['train']['endEpoch']:03d}_b_{cfg['train']['trainBatchSize']:03d}" \
+                          f"_lr_{cfg['train']['lr']['init']:0.06f}"
+                          
+                          
+        self.saveRoot = os.path.join(cfg['train']['resultDirectoryName'], cfg['train']['experimentFolder'],
+                                        cfg['train']['experimentName'])
+        
+        self.sourefiles_path = os.path.join(self.saveRoot, 'source_file')
+        self.model_checkpoints_path = os.path.join(self.saveRoot, 'model_checkpoints')
+        
+        
+        self.logger_path = os.path.join(self.sourefiles_path, self.experiment_name + '.txt')
+        
+        self.initialize()
+        self.create_logger()
+        self.createSummaryWriter()
+        #self.copy()
+        
+        
+    @staticmethod  
+    def copyanything(src, dst):
+        try:
+            shutil.copytree(src, dst)
+        except OSError as exc:  # python >2.5
+            if exc.errno == errno.ENOTDIR:
+                shutil.copy(src, dst)
+            else:
+                raise
+        
+  
+        
+        
+    def initialize(self):
+        if os.path.exists(self.saveRoot):
+            del_dir = input(f"This directory exists. \nDo you want to 'REMOVE' [{self.saveRoot}] directory? (y/n) ")
+            if del_dir == 'y': 
+                shutil.rmtree(self.saveRoot , ignore_errors=True)
+            else:
+                assert del_dir == 'y', f"Program is terminated by typing:  ({del_dir})" 
+
+        os.makedirs(self.saveRoot)
+        os.makedirs(os.path.join(self.sourefiles_path,'script'))
+        os.makedirs(self.model_checkpoints_path)
+        
+        #self.copyanything()
+        
+        
+        
+    def create_logger(self):
+        if  self.cfg['options']['logger']['flag']:
+            logging.basicConfig(filename= self.logger_path,
+                            format='%(asctime)s %(message)s',
+                            filemode='w')
+                            
+        # Creating an object
+        self.logger = logging.getLogger()
+        # Setting the threshold of logger to DEBUG
+        self.logger.setLevel(logging.DEBUG)
+        self.print_log(f"experiment name: {self.experiment_name}" ) 
+        self.print_log(f"\nAll details can be found at: \n [{os.path.abspath(self.logger_path)}] \n {'='*20} \n")                    
+                          
+    def print_log(self, msg , log =True ,print_ = True):
+        if log:
+            self.logger.info(f"[{os.path.basename(__file__)}] " + msg)
+        if print_:
+            print(msg)
+            
+    def createSummaryWriter(self):
+        self.writer = SummaryWriter(self.saveRoot)
+            
+    #def copy(self):
+            
+        #shutil.copyfile(__file__, os.path.join(self.sourefiles_path, os.path.basename(__file__)))
+        ##print('__file__' ,__file__)
+        # shutil.copyfile(os.path.abspath(yml_file),
+                    # os.path.join(source_save_dir, os.path.basename(os.path.abspath(yml_file))))
+        # self.copyanything(os.path.abspath('../lib'), os.path.join(source_save_dir, 'lib'))
+        # self.copyanything(os.path.abspath('../lib2'), os.path.join(source_save_dir, 'lib2'))
+        
+        
+                      
+
+
+
+# class dataLogger:
+    # def __init__(self, cfg ):
+    
+    
+    
+    
+                                    
+    
+    
+    # logger_path = os.path.join(source_save_dir, experiment_name + '.txt')
+    
 
 
 class ClogLossDataset_downloader:
