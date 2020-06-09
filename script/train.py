@@ -86,9 +86,9 @@ print(model(vid_tensor).shape)
 # optimizer = torch.optim.Adam(model.parameters(), lr=config['train']['lr']['init'], weight_decay=1e-5)
 # optimizer = torch.optim.SGD(model.parameters(), lr=config['train']['lr']['init'])
 optimizer = torch.optim.SGD(model.parameters(), lr=config['train']['lr']['init'], momentum=0.9)
+
+criterion = nn.BCELoss()
 # criterion = nn.MSELoss()
-# criterion = nn.BCELoss()
-criterion = nn.MSELoss()
 
 best_loss = 1e+10
 history = pd.DataFrame()

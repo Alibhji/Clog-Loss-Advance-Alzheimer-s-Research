@@ -178,6 +178,7 @@ class ClogLossDataset_downloader:
             self.df_dataset = self.df_dataset.reset_index(drop = True)
             
         # filter dataset
+        print(f"Orginal Dataset >>>>>>> ", len(self.df_dataset))
         self.filter_dataset()
         # limit_data
         lim_min = self.cfg['dataset']['filter']['limit']['min']
@@ -236,11 +237,12 @@ class ClogLossDataset_downloader:
                 # filter more than max value
                 filter_ = (self.df_dataset[self.df_dataset[key_] < filter_vec[0]].index.to_list()) 
                 self.df_dataset = self.df_dataset.drop(filter_).reset_index(drop=True)
+
                 
                 # filter less than min value
                 filter_ = self.df_dataset[self.df_dataset[key_] > filter_vec[1]].index.to_list()
                 self.df_dataset = self.df_dataset.drop(filter_).reset_index(drop=True)
-
+                print(f"Filtered  by[{key_}]  >>>>>>> ", len(self.df_dataset))
                 
             else:
             
@@ -249,7 +251,8 @@ class ClogLossDataset_downloader:
 
                 outliers = self.df_dataset[filtred_indexex].index.to_list()
                 self.df_dataset = self.df_dataset.drop(outliers).reset_index(drop=True)
-            
+
+                print(f"Filtered  by[{key_}]  >>>>>>> ", len(self.df_dataset))
             
 
         

@@ -78,8 +78,8 @@ class my_deep_clag_loss(nn.Module):
             torch.nn.ReLU(inplace=True),
             torch.nn.Dropout(p=.25),
             torch.nn.BatchNorm1d(32),
-            torch.nn.Linear(32, 2),
-            torch.nn.Sigmoid())
+            torch.nn.Linear(32, 2))
+            #torch.nn.Sigmoid())
 
         self.head.apply(weights_init)
         self.decode_to_Fake_True.apply(weights_init)
