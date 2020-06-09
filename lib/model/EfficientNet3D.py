@@ -68,8 +68,8 @@ class my_deep_clag_loss(nn.Module):
      #       torch.nn.Dropout(p=.25),
             torch.nn.BatchNorm1d(512),
             torch.nn.Linear(512, 256),
-            torch.nn.Tanh()
-            # torch.nn.ReLU(inplace=True)
+            # torch.nn.Tanh()
+            torch.nn.ReLU(inplace=True)
         )
 
          

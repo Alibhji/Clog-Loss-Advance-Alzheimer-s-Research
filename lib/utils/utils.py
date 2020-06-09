@@ -82,10 +82,11 @@ class create_new_experiment:
         self.print_log(f"\nAll details can be found at: \n [{os.path.abspath(self.logger_path)}] \n {'='*20} \n")                    
                           
     def print_log(self, msg , log =True ,print_ = True):
-        if log:
-            self.logger.info(f"[{os.path.basename(__file__)}] " + msg)
         if print_:
             print(msg)
+        if log:
+            self.logger.info(f"[{os.path.basename(__file__)}] " + msg)
+
             
     def createSummaryWriter(self):
         self.writer = SummaryWriter(self.saveRoot)

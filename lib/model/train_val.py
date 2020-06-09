@@ -176,4 +176,5 @@ def train_val(model, data_loader, epoch, device, optimizer, criterion, config, m
         # with open("evaltion_Pack.pandas", 'wb') as handle:
             # pickle.dump(evaltion_Pack, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
+
     return  running_loss ,history

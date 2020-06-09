@@ -123,8 +123,8 @@ for epoch in range(config['train']['startEpoch'], config['train']['endEpoch']): 
     with open(os.path.join(this_expr.model_checkpoints_path, f'history.pkl'), 'wb') as handle:
         pickle.dump(history, handle, protocol=pickle.HIGHEST_PROTOCOL)
         
-    this_expr.print_log('current_val_loss: ', f"{curr_val_loss}")
-    
+    this_expr.print_log(f"current_val_loss: {curr_val_loss}")
+
     if curr_val_loss < best_loss:
         model_save_format = f"model_E{epoch:03d}_Loss{curr_val_loss:.6f}.pt"
         # torch.save(model.state_dict(), os.path.join(experiment_name ,f"./model_E{epoch:03d}_Loss{curr_val_loss:.6f}.pt"))
