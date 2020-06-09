@@ -22,6 +22,8 @@ from lib import  train_val
 from lib import create_new_experiment
 import pickle
 
+from tqdm import tqdm
+
 config = './config.yml'
 with open (config , 'rb') as f:
     config = yaml.load(f ,Loader=yaml.FullLoader)
@@ -37,8 +39,18 @@ fold = 0
 train_dataset = ClogLossDataset_from_compressed_data(config , split='train' ,fold = fold )
 val_dataset   = ClogLossDataset_from_compressed_data(config , split='val' ,fold = fold)
 
+
+
 this_expr.print_log(f"Trin dataset: {len(train_dataset)} objects")
 this_expr.print_log(f"Val dataset : {len(val_dataset)} objects")
+
+
+# for data in tqdm(train_dataset):
+#     pass
+# for data in tqdm(val_dataset):
+#     pass
+
+
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 this_expr.print_log(f"Device      : {device}")
@@ -71,10 +83,12 @@ vid_tensor = vid_tensor.to(device)
 print(model(vid_tensor).shape)
 
 
-optimizer = torch.optim.Adam(model.parameters(), lr=config['train']['lr']['init'], weight_decay=1e-5)
+# optimizer = torch.optim.Adam(model.parameters(), lr=config['train']['lr']['init'], weight_decay=1e-5)
+# optimizer = torch.optim.SGD(model.parameters(), lr=config['train']['lr']['init'])
+optimizer = torch.optim.SGD(model.parameters(), lr=config['train']['lr']['init'], momentum=0.9)
 # criterion = nn.MSELoss()
-criterion = nn.BCELoss()
-
+# criterion = nn.BCELoss()
+criterion = nn.MSELoss()
 
 best_loss = 1e+10
 history = pd.DataFrame()

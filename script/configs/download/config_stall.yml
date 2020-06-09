@@ -3,8 +3,8 @@ dataset:
     num_frames: 65
     credentials_path: /home/mjamali/proj/B/data/credentials.yml
     remove_donloaded_video : True
-    save_dir : /home/mjamali/proj/B/data/flowing_Tensors
-    Multiprocessing_num_cores : 7
+    save_dir : /home/mjamali/proj/B/data/stall_Tensors
+    Multiprocessing_num_cores : 38
     
     filter:
         limit :
@@ -36,5 +36,5 @@ dataset:
          # - 40 # Max
 
         crowd_score: # depth limit
-         - 0.7 # Min
+         - 0.65 # Min
          - 1.0 # Max    

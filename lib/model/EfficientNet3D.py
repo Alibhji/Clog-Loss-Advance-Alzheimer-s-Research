@@ -56,6 +56,7 @@ class my_deep_clag_loss(nn.Module):
  #           torch.nn.Linear(1792, 1024), #b4
  #           torch.nn.Linear(2048, 1024), #b5
  #           torch.nn.Linear(2304, 1024), #b6
+            torch.nn.BatchNorm1d(2560),
             torch.nn.Linear(2560, 512), #b7
             torch.nn.ReLU(inplace=True),
             torch.nn.Dropout(p=.25),
@@ -64,16 +65,19 @@ class my_deep_clag_loss(nn.Module):
      #       torch.nn.Dropout(p=.25), 
      #       torch.nn.Linear(512+256, 512),
      #       torch.nn.ReLU(inplace=True),
-     #       torch.nn.Dropout(p=.25), 
+     #       torch.nn.Dropout(p=.25),
+            torch.nn.BatchNorm1d(512),
             torch.nn.Linear(512, 256),
             torch.nn.ReLU(inplace=True))
 
          
         self.head=  nn.Sequential(
-          #  torch.nn.Dropout(p=.25), 
+          #  torch.nn.Dropout(p=.25),
+            torch.nn.BatchNorm1d(32+256),
             torch.nn.Linear(32+256, 32),
             torch.nn.ReLU(inplace=True),
             torch.nn.Dropout(p=.25),
+            torch.nn.BatchNorm1d(32),
             torch.nn.Linear(32, 2),
             torch.nn.Sigmoid())
 

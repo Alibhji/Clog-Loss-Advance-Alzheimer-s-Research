@@ -33,8 +33,8 @@ def run_multi_proc() :
 
     
 # config = './config.yml'
-config = '../script/configs/download/config_flowing.yml'
-# config = '../script/configs/download/config_stall.yml'
+#config = '../script/configs/download/config_flowing.yml'
+config = '../script/configs/download/config_stall.yml'
 
 
 with open (config , 'rb') as f:

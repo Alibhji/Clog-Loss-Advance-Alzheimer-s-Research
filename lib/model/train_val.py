@@ -5,12 +5,14 @@ import copy
 
 
 def loss_function (output ,target,criterion ):
-    rows = range(len(target))
-    oneHotLabel = torch.zeros(len(target),2)
-    oneHotLabel[rows ,target.numpy()==1] =1
-    oneHotLabel = oneHotLabel.to(output.device)
+    # rows = range(len(target))
+    # oneHotLabel = torch.zeros(len(target),2)
+    # oneHotLabel[rows ,target.numpy()==1] =1
+    # oneHotLabel = oneHotLabel.to(output.device)
 
-    return criterion(output , oneHotLabel)
+    # print(output , "---",target)
+
+    return criterion(output , target.to(output.device))
     
     
 def lr_scheduler(optimizer, epoch, lr_decay=0.1, lr_decay_epoch=7 ,logger=None):
@@ -88,7 +90,7 @@ def train_val(model, data_loader, epoch, device, optimizer, criterion, config, m
 
             output = model(img_tensor)
 
-            loss = loss_function(output ,meta['stalled'] ,criterion)
+            loss = loss_function(output ,meta['target'] ,criterion)
 
             optimizer.zero_grad()
             loss.backward()
@@ -112,14 +114,14 @@ def train_val(model, data_loader, epoch, device, optimizer, criterion, config, m
                 history.loc[epoch * len(data_loader) + i, 'train_running_loss'] = running_loss
 
 
-            if(i==4):
-                break
+            # if(i==4):
+            #     break
 
         else:
 
             output = model(img_tensor)
             
-            loss = loss_function(output ,meta['stalled'] ,criterion)
+            loss = loss_function(output ,meta['target'] ,criterion)
 
 
             loss_value = copy.deepcopy(loss.cpu().detach().numpy())
@@ -140,8 +142,8 @@ def train_val(model, data_loader, epoch, device, optimizer, criterion, config, m
                 history.loc[epoch * len(data_loader) + i, 'eval_loss_value'] = loss_value
                 history.loc[epoch * len(data_loader) + i, 'eval_running_loss'] = running_loss
             
-            if(i==4):
-                break
+            # if(i==4):
+            #     break
             
 
     if mode == 'train':

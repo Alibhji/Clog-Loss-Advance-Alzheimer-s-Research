@@ -10,6 +10,7 @@ import os
 import yaml
 import joblib
 import pickle
+from tqdm import tqdm
 
 
 from sklearn.model_selection import KFold
@@ -77,6 +78,8 @@ class ClogLossDataset(Dataset):
                               columns=['filename'])
             self.df_dataset = self.df_dataset[metaData['filename'].isin(df['filename'])]
             self.df_dataset = self.df_dataset.reset_index(drop=True)
+
+
 
     #         self.df_dataset['num_frames'].plot.hist()
     #         self.df_dataset['stalled'] = label[label['filename'].isin(df['filename'])]
@@ -218,7 +221,7 @@ class ClogLossDataset_from_compressed_data(Dataset):
             counter = 0   
             len_stall = len(self.stall_Tensors_pd)-1
             # balance data
-            for  rowt in self.flowing_Tensors_pd.iterrows():
+            for  rowt in tqdm(self.flowing_Tensors_pd.iterrows() , total = len(self.flowing_Tensors_pd)):
                 indx=rowt[0]
                 row =rowt[1]
 
@@ -234,7 +237,12 @@ class ClogLossDataset_from_compressed_data(Dataset):
         else:
             with open (os.path.join(self.dataPath, f"temp_balanced_dataset_pd.pandas"),'rb') as handle:
                 self.df_dataset = pickle.load(handle)
-                
+
+        self.df_dataset = self.df_dataset.iloc[:5000]
+        self.df_dataset =self.df_dataset.drop(self.df_dataset.loc[self.df_dataset['filename'] == '684600.mp4'].index)
+        #print("********************" , self.df_dataset.loc[self.df_dataset['filename'] == '684600.mp4'])
+
+
         train, val = genrate_K_folds(self.df_dataset, K=self.cfg['dataset']['K'], Fold=self.fold)
         
         if self.split == 'train':
@@ -270,14 +278,21 @@ class ClogLossDataset_from_compressed_data(Dataset):
 #         tensor_img = tensor_img - tensor_img.mean()
         tensor_img = tensor_img/255.0
         
-        if tensor_img.shape[0]<199:
+        if tensor_img.shape[0]<69:
             #print(tensor_img.shape[0])
-            tensor_img = np.append(tensor_img , np.zeros((200 - len(tensor_img),150, 150, 3)),axis=0)
+            tensor_img = np.append(tensor_img , np.zeros((70 - len(tensor_img),150, 150, 3)),axis=0)
+        # if tensor_img.shape[0] > 199:
+        tensor_img = tensor_img[:65]
         
 #         print(tensor_img.mean())
         if self.draw_3d:
             self.draw_tensor(tensor_img)
         meta['tier1']= str(meta['tier1'])
+
+        onHotTarget = np.zeros((2), dtype=np.float32 )
+        onHotTarget[meta['stalled']] = 1
+        meta['target'] = onHotTarget
+
         tensor_img = np.moveaxis(tensor_img ,3,0)
         tensor_img = tensor_img.astype(np.float32)
 
