@@ -2,7 +2,7 @@
 train:
     resultDirectoryName : result
     experimentFolder : dir1
-    experimentName: exp1
+    experimentName: exp1_lr0001
     
     trainBatchSize : 16
     valBatchSize : 16
@@ -10,9 +10,10 @@ train:
     startEpoch : 0
     endEpoch :   50
     lr:
-        init: 0.005
-        lr_decay :  0.05
+        init: 0.0001
+        lr_decay :  0.8
         lr_decay_epoch : 10
+    device : cuda:1
         
 options:
     logger:

@@ -68,7 +68,9 @@ class my_deep_clag_loss(nn.Module):
      #       torch.nn.Dropout(p=.25),
             torch.nn.BatchNorm1d(512),
             torch.nn.Linear(512, 256),
-            torch.nn.ReLU(inplace=True))
+            torch.nn.Tanh()
+            # torch.nn.ReLU(inplace=True)
+        )
 
          
         self.head=  nn.Sequential(
@@ -78,7 +80,9 @@ class my_deep_clag_loss(nn.Module):
             torch.nn.ReLU(inplace=True),
             torch.nn.Dropout(p=.25),
             torch.nn.BatchNorm1d(32),
-            torch.nn.Linear(32, 2))
+            torch.nn.Linear(32, 2),
+            torch.nn.Tanh()
+        )
             #torch.nn.Sigmoid())
 
         self.head.apply(weights_init)
@@ -132,7 +136,7 @@ class RNNModel(nn.Module):
     
     def forward(self, x):
         # Initialize hidden state with zeros
-        h0 = torch.zeros((self.layer_dim, x.size(0), self.hidden_dim),requires_grad=True).cuda()
+        h0 = torch.zeros((self.layer_dim, x.size(0), self.hidden_dim),requires_grad=True).to(x.device)
             
         # One time step
         out, hn = self.rnn(x, h0)

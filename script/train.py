@@ -52,7 +52,8 @@ this_expr.print_log(f"Val dataset : {len(val_dataset)} objects")
 
 
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device(f"{config['train']['device']}" if torch.cuda.is_available() else "cpu")
+
 this_expr.print_log(f"Device      : {device}")
 
 train_loader = DataLoader(train_dataset, batch_size=config['train']['trainBatchSize'],
@@ -87,8 +88,8 @@ print(model(vid_tensor).shape)
 # optimizer = torch.optim.SGD(model.parameters(), lr=config['train']['lr']['init'])
 optimizer = torch.optim.SGD(model.parameters(), lr=config['train']['lr']['init'], momentum=0.9)
 
-criterion = nn.BCELoss()
-# criterion = nn.MSELoss()
+# criterion = nn.BCELoss()
+criterion = nn.MSELoss()
 
 best_loss = 1e+10
 history = pd.DataFrame()

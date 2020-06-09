@@ -220,6 +220,11 @@ class ClogLossDataset_from_compressed_data(Dataset):
     #         self.flowing_Tensors_pd = self.flowing_Tensors_pd.iloc[:100]
             counter = 0   
             len_stall = len(self.stall_Tensors_pd)-1
+
+
+            self.flowing_Tensors_pd = self.flowing_Tensors_pd.iloc[:2000]
+
+
             # balance data
             for  rowt in tqdm(self.flowing_Tensors_pd.iterrows() , total = len(self.flowing_Tensors_pd)):
                 indx=rowt[0]
@@ -238,7 +243,7 @@ class ClogLossDataset_from_compressed_data(Dataset):
             with open (os.path.join(self.dataPath, f"temp_balanced_dataset_pd.pandas"),'rb') as handle:
                 self.df_dataset = pickle.load(handle)
 
-        self.df_dataset = self.df_dataset.iloc[:5000]
+        # self.df_dataset = self.df_dataset.iloc[:5000]
         self.df_dataset =self.df_dataset.drop(self.df_dataset.loc[self.df_dataset['filename'] == '684600.mp4'].index)
         #print("********************" , self.df_dataset.loc[self.df_dataset['filename'] == '684600.mp4'])
 
@@ -278,18 +283,18 @@ class ClogLossDataset_from_compressed_data(Dataset):
 #         tensor_img = tensor_img - tensor_img.mean()
         tensor_img = tensor_img/255.0
         
-        if tensor_img.shape[0]<69:
+        if tensor_img.shape[0]<80:
             #print(tensor_img.shape[0])
-            tensor_img = np.append(tensor_img , np.zeros((70 - len(tensor_img),150, 150, 3)),axis=0)
+            tensor_img = np.append(tensor_img , np.zeros((80 - len(tensor_img),150, 150, 3)),axis=0)
         # if tensor_img.shape[0] > 199:
-        tensor_img = tensor_img[:65]
+        tensor_img = tensor_img[:80]
         
 #         print(tensor_img.mean())
         if self.draw_3d:
             self.draw_tensor(tensor_img)
         meta['tier1']= str(meta['tier1'])
 
-        onHotTarget = np.zeros((2), dtype=np.float32 )
+        onHotTarget = np.ones((2), dtype=np.float32 )* -1
         onHotTarget[meta['stalled']] = 1
         meta['target'] = onHotTarget
 
