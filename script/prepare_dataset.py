@@ -15,8 +15,9 @@ from multiprocessing  import  cpu_count
 def call_a_video(index):
     global counter ,dataset_len
     counter +=1
-    video_downloder[index]
-    print(f"{counter:6d} / {dataset_len} --> {(counter / dataset_len) * 100:02.5f} %")
+    _,meta=video_downloder[index]
+    print(f"{counter:6d} / {dataset_len} --> {(counter / dataset_len) * 100:07.5f} %  "
+          f"[{meta['filename']}] [shape: {meta['tensor_size' ]}]")
     return index
 
 def calculateParallel( threads= cpu_count):
@@ -33,8 +34,8 @@ def run_multi_proc() :
 
     
 # config = './config.yml'
-#config = '../script/configs/download/config_flowing.yml'
-config = '../script/configs/download/config_stall.yml'
+config = '../script/configs/download/config_flowing.yml'
+#config = '../script/configs/download/config_stall.yml'
 
 
 with open (config , 'rb') as f:
