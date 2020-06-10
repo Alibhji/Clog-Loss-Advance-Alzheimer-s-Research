@@ -126,6 +126,7 @@ class ClogLossDataset_downloader:
         self.remove = config['dataset']['remove_donloaded_video']
         self.draw_3d = draw_3d
         self.saveDatasetDir  = config['dataset']['save_dir']
+        self.size = config['dataset']['size']
         
         if not os.path.exists(self.saveDatasetDir):
             os.makedirs(self.saveDatasetDir)
@@ -277,6 +278,64 @@ class ClogLossDataset_downloader:
         ymin , ymax = min(mask_ind[0]) , max(mask_ind[0])
         # remove orange line from the image
         return mask1 ,(xmin , xmax , ymin , ymax)
+        
+    @staticmethod    
+    def extract_location_area_from_highlighted_curve(image):
+        # convert to hsv to detect the outlined orange area
+        hsv = cv2.cvtColor(image,cv2.COLOR_BGR2HSV)
+        lower_red = np.array([100,120,150])
+        upper_red = np.array([110,255,255])
+        # create a mask
+        mask1 = cv2.inRange(hsv, lower_red, upper_red)
+        mask1 = cv2.dilate(mask1, None, iterations=2)
+        mask_ind = np.where(mask1>0)
+        xmin , xmax = min(mask_ind[1]) , max(mask_ind[1])
+        ymin , ymax = min(mask_ind[0]) , max(mask_ind[0])
+        # remove orange line from the image
+        image[mask_ind ]=0,0,0
+        # fill the area to skip the data outside of this area
+        ret,mask1 = cv2.threshold(mask1,10,255,cv2.THRESH_BINARY_INV)
+        contours,hierarchy = cv2.findContours(mask1, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+        contours = [ctr for ctr in contours if cv2.contourArea(ctr) < 5*(mask1.shape[0]*mask1.shape[1])/6]
+        contours = sorted(contours, key=cv2.contourArea, reverse=True)
+        cv2.drawContours(mask1, [contours[-1]], -1, (0, 0, 0), -1)
+        # remove data out of the outlined area
+        image[mask1>0] = (0,0,0)
+
+        image = image[ ymin:ymax , xmin:xmax ]
+
+
+        mask2 = cv2.cvtColor(image , cv2.COLOR_RGB2GRAY)
+        ret,mask2 = cv2.threshold(mask2,90,255,cv2.THRESH_BINARY)
+
+        contours,hierarchy = cv2.findContours(mask2, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
+        # contours = [ctr for ctr in contours if cv2.contourArea(ctr) < 5*(mask1.shape[0]*mask1.shape[1])/6]
+        contours = sorted(contours, key=cv2.contourArea, reverse=True)
+        
+        vessels_image  = np.zeros_like(image)
+        
+
+        areas = []
+        for ctr in contours:
+            if cv2.contourArea(ctr) > 50:
+
+                cv2.drawContours(image, [ctr], -1, (255, 0, 0), -1)
+                cv2.drawContours(vessels_image, [ctr], -1, (255, 255, 255), -1)
+                
+                xxmin , xxmax = min(ctr[:,:,0])[0] , max(ctr[:,:,0])[0]
+                yymin , yymax = min(ctr[:,:,1])[0] , max(ctr[:,:,1])[0]
+
+    #             image = cv2.rectangle(image , (xxmin ,yymin) ,(xxmax , yymax),(0,255,0),1,1)
+                areas.append([xxmin ,yymin ,xxmax ,yymax ,cv2.contourArea(ctr) ])
+    #             print(xxmin ,yymin ,xxmax ,yymax)
+        # plt.figure()
+        # plt.imshow(np.hstack((image,vessels_image)))
+        vessels_image = cv2.resize(vessels_image ,(self.size[0],self.size[1]))
+        vessels_image = cv2.cvtColor(vessels_image , cv2.COLOR_RGB2GRAY)
+        
+        
+    #     area
+        return vessels_image 
     
     
     def filter_image(self, image ,mask1 ,area):
@@ -329,9 +388,9 @@ class ClogLossDataset_downloader:
         return len(self.df_dataset)-1
         
         
+        
     def __getitem__(self, index):
         row = self.df_dataset.iloc[index]
-        
         metadata = self.create_metadata(row)
         
         if self.online_data:
@@ -351,49 +410,93 @@ class ClogLossDataset_downloader:
     
         tensor_img = []
         
+        # for frame in range(int(total_frames)):
+            # image , hasframe = self.getFrame(vidcap ,time_stamp[frame] , frame)
+            
+            # if hasframe:
+                # if frame==0:
+                    # mask , area = self.get_specified_area(image)
+                # image = self.filter_image(image , mask, area)
+                # tensor_img.append(image)
+                
+                
+        vessels_tensor = np.zeros([1,self.size[0],self.size[1]])
         for frame in range(int(total_frames)):
-            image , hasframe = self.getFrame(vidcap ,time_stamp[frame] , frame)
-            
+            image , hasframe = getFrame(vidcap ,time_stamp[frame] , frame)
             if hasframe:
-                if frame==0:
-                    mask , area = self.get_specified_area(image)
-                image = self.filter_image(image , mask, area)
-                tensor_img.append(image)
+                vessels_image = extract_location_area_from_highlighted_curve(image)
+                vessels_tensor =np.append(vessels_tensor ,vessels_image[np.newaxis,...], axis=0)
                 
-            # if frame >= 199:
-                # break
-            
-            
-        # if  len(tensor_img) < 200:
-            # for kk in range(200 - len(tensor_img) ):
-                # tensor_img.append(list(np.zeros([150,150,3])))
-                
-#         print(len(tensor_img))
+        print(vessels_tensor.shape)
         vidcap.release()  
         if self.remove:
             os.remove(vid_p)
-        tensor_img = np.array(list(tensor_img))
+        vessels_tensor = np.array(list(vessels_tensor))
 #         print(tensor_img.shape)
         if self.draw_3d :
-            self.draw_tensor(tensor_img)
+            self.draw_tensor(vessels_tensor)
 #         print(row)
 #         tensor_img = np.moveaxis(tensor_img,3,0)
-        tensor_img = tensor_img.astype(np.uint8)
+        vessels_tensor = vessels_tensor.astype(np.uint8)
         joblib.dump([tensor_img , metadata], os.path.join(self.saveDatasetDir ,f"{row.filename.split('.')[0]}.lzma"), compress=('lzma', 6))
 #         print(os.path.join(self.saveDatasetDir ,f"{row.filename}"))
         
         return [tensor_img , metadata]
+        
+        
+#     def __getitem__(self, index):
+#         row = self.df_dataset.iloc[index]
+        
+#         metadata = self.create_metadata(row)
+        
+#         if self.online_data:
+#             vid_p = os.path.join(self.download_fldr ,f"{row.filename}")
+#             self.bucket.download_file(f"train/{row.filename}",vid_p )       
+#             vidcap = cv2.VideoCapture(vid_p)
+# #             
+#         else:
+#             vidcap = cv2.VideoCapture(os.path.join(self.videoPath,row.filename))
+#         total_frames = vidcap.get(cv2.CAP_PROP_FRAME_COUNT)
+# #         total_frames = config['dataset']['num_frames']
+#         frame_size = (int(vidcap.get(cv2.CAP_PROP_FRAME_WIDTH)) , int(vidcap.get(cv2.CAP_PROP_FRAME_HEIGHT )))
+#         fps = vidcap.get(cv2.CAP_PROP_FPS)
+#         Video_len = total_frames / fps
+#         from_sec = 0 
+#         time_stamp = np.linspace(from_sec , Video_len , int(total_frames / 1.0) )
+    
+#         tensor_img = []
+        
+#         for frame in range(int(total_frames)):
+#             image , hasframe = self.getFrame(vidcap ,time_stamp[frame] , frame)
+            
+#             if hasframe:
+#                 if frame==0:
+#                     mask , area = self.get_specified_area(image)
+#                 image = self.filter_image(image , mask, area)
+#                 tensor_img.append(image)
+                
+#             # if frame >= 199:
+#                 # break
             
             
-#         def __iter__(self):
-#             return self
-
-#         def __next__(self): # Python 2: def next(self)
-#             row = self.df_dataset.iloc[self.current_row]
-#             self.current_row +=1
-#             if self.current_row < self.number_of_objec:
-#                 return row
-#             raise StopIteration
+#         # if  len(tensor_img) < 200:
+#             # for kk in range(200 - len(tensor_img) ):
+#                 # tensor_img.append(list(np.zeros([150,150,3])))
+                
+# #         print(len(tensor_img))
+#         vidcap.release()  
+#         if self.remove:
+#             os.remove(vid_p)
+#         tensor_img = np.array(list(tensor_img))
+# #         print(tensor_img.shape)
+#         if self.draw_3d :
+#             self.draw_tensor(tensor_img)
+# #         print(row)
+# #         tensor_img = np.moveaxis(tensor_img,3,0)
+#         tensor_img = tensor_img.astype(np.uint8)
+#         joblib.dump([tensor_img , metadata], os.path.join(self.saveDatasetDir ,f"{row.filename.split('.')[0]}.lzma"), compress=('lzma', 6))
+# #         print(os.path.join(self.saveDatasetDir ,f"{row.filename}"))
+        
+#         return [tensor_img , metadata]
             
             
-#video_downloder = ClogLossDataset_downloader(config  )

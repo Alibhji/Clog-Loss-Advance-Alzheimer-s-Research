@@ -5,6 +5,7 @@ dataset:
     remove_donloaded_video : True
     save_dir : ..\..\data\flowing_Tensors
     Multiprocessing_num_cores : 7
+    size : (224 ,224)
     
     filter:
         limit :
