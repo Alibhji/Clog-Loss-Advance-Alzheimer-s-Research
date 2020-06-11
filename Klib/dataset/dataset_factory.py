@@ -160,7 +160,7 @@ class DataSet():
         vessels_image = cv2.cvtColor(vessels_image, cv2.COLOR_RGB2GRAY)
         vessels_image = preprocessing_function(vessels_image)
         #     area
-        return vessels_image.astype(np.float64)
+        return vessels_image.astype(np.float32)
 
     def process_video(self, foldername, filename, size, preprocessing_function):
 
@@ -200,7 +200,7 @@ class DataSet():
 
     def get_class_one_hot(self, tag, min_value=0):
 
-        onHotTarget = np.ones((2), dtype=np.float64) * min_value
+        onHotTarget = np.ones((2), dtype=np.float32) * min_value
 
         onHotTarget[int(tag)] = 1
         return onHotTarget
