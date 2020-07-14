@@ -279,8 +279,8 @@ class ClogLossDataset_downloader:
         # remove orange line from the image
         return mask1 ,(xmin , xmax , ymin , ymax)
         
-    @staticmethod    
-    def extract_location_area_from_highlighted_curve(image):
+   # @staticmethod    
+    def extract_location_area_from_highlighted_curve(self,image):
         # convert to hsv to detect the outlined orange area
         hsv = cv2.cvtColor(image,cv2.COLOR_BGR2HSV)
         lower_red = np.array([100,120,150])
@@ -422,9 +422,9 @@ class ClogLossDataset_downloader:
                 
         vessels_tensor = np.zeros([1,self.size[0],self.size[1]])
         for frame in range(int(total_frames)):
-            image , hasframe = getFrame(vidcap ,time_stamp[frame] , frame)
+            image , hasframe = self.getFrame(vidcap ,time_stamp[frame] , frame)
             if hasframe:
-                vessels_image = extract_location_area_from_highlighted_curve(image)
+                vessels_image = self.extract_location_area_from_highlighted_curve(image)
                 vessels_tensor =np.append(vessels_tensor ,vessels_image[np.newaxis,...], axis=0)
                 
         print(vessels_tensor.shape)
