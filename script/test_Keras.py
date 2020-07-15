@@ -4,6 +4,7 @@
 import sys
 import yaml
 import  pickle
+import pandas as pd
 
 
 package_path = '..'
@@ -77,7 +78,6 @@ for physical_device in physical_devices:
 # model.add(LSTM(256, return_sequences=False, dropout=0.5))
 # model.add(Dense(2, activation='softmax'))
 # model.summary()
-
 weights_path = '/home/mjamali/proj/B/Clog/script/weights-improvement-09-0.59.hdf5'
 model = models.load_model(weights_path)
 
@@ -142,6 +142,15 @@ print(ynew)
 with open('model_output.out','wb') as file:
     pickle.dump(ynew, file, protocol=pickle.HIGHEST_PROTOCOL)
 print(f"Model estimation is saved at model_output.out")
+
+
+
+
+submit = pd.read_csv('../../data/submission_format.csv')
+submit['stalled'] = ynew[:,0]
+submit['stalled']  = submit.apply(lambda row: [1,0] [row.stalled>=0.5] ,axis=1)
+
+submit.to_csv('my_submission.csv',index=False)
 # parallel_model.compile(optimizer=Adam(lr=0.00005), loss='binary_crossentropy', metrics = ['accuracy'])
 
 # parallel_model.fit_generator(data.data_generator(X_train, 'standard', size=size, batch_size=batch_size),
