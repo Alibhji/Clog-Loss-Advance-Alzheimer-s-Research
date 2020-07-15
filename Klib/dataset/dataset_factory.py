@@ -75,7 +75,10 @@ class DataSet():
             self.df_dataset =self.df_dataset.drop(self.df_dataset.loc[self.df_dataset['filename'] == '684600.mp4'].index)
             #print("********************" , self.df_dataset.loc[self.df_dataset['filename'] == '684600.mp4'])
 
-            # elif self.type == 'test':
+        elif self.type == 'test':
+            self.df_dataset['foldername'] = 'test_dataset2'
+            self.df_dataset['stalled'] = -1
+
 
 
         print(len(self.df_dataset))
@@ -235,7 +238,11 @@ class DataSet():
                     y_batch.append(self.get_class_one_hot(tag))
                 x_batch = np.array(x_batch)
                 y_batch = np.array(y_batch)
-                yield x_batch, y_batch
+                # print(x_batch.shape)
+                if self.type =='train':
+                    yield x_batch, y_batch
+                else:
+                    yield x_batch
 
 
 #                 return x_batch, y_batch

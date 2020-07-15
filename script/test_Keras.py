@@ -19,7 +19,6 @@ with open (config , 'rb') as f:
     config = yaml.load(f ,Loader=yaml.FullLoader)
 
 # print(config)
-dataset = DataSet(config , datatype = 'test')
 
 
 
@@ -82,9 +81,10 @@ for physical_device in physical_devices:
 weights_path = '/home/mjamali/proj/B/Clog/script/weights-improvement-09-0.59.hdf5'
 model = models.load_model(weights_path)
 
+# model.summary()
+# mmm
 
-
-data = DataSet(config)
+data = DataSet(config , datatype = 'test')
 # X_train, X_test, y_train, y_test = data.split_train_test()
 X_test = data.df_dataset
 
@@ -131,9 +131,10 @@ size = (224, 224)
 # train_steps = len(X_train) / batch_size
 test_steps = len(X_test) / batch_size
 
+
 parallel_model = multi_gpu_model(model, gpus=4)
 
-ynew  =model.predict(data.data_generator(X_test, 'standard', size=size, batch_size=batch_size)
+ynew  =model.predict_generator(data.data_generator(X_test, 'standard', size=size, batch_size=batch_size)
               , steps= test_steps ,verbose=1)
 
 print(ynew)
