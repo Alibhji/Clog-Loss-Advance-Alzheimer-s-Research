@@ -24,56 +24,58 @@ import joblib
 
 
 class DataSet():
-    def __init__(self, config):
-
+    def __init__(self, config , datatype = 'train'):
+        self.type = datatype
         self.config = config
         self.vid_path = os.path.join('..', config['dataset']['path'])
 
 
-        with open(os.path.join(config['dataset']['path'] ,'whole_train_dataset.pandas'), 'rb') as file:
+        with open(os.path.join(config['dataset']['path'] ,f'whole_{self.type}_dataset.pandas'), 'rb') as file:
             self.df_dataset = pickle.load(file)
 
+        if self.type =='train':
+            vids1 = os.listdir(os.path.join('..', config['dataset']['path'], 'flowing_Tensors'))
+            vids1 = [vid.split('.')[0]+'.mp4' for vid in vids1]
+            flowing_Tensors_pd = self.df_dataset.loc[(self.df_dataset['filename'].isin(vids1))]
+            flowing_Tensors_pd['foldername'] ='flowing_Tensors'
 
-        vids1 = os.listdir(os.path.join('..', config['dataset']['path'], 'flowing_Tensors'))
-        vids1 = [vid.split('.')[0]+'.mp4' for vid in vids1]
-        flowing_Tensors_pd = self.df_dataset.loc[(self.df_dataset['filename'].isin(vids1))]
-        flowing_Tensors_pd['foldername'] ='flowing_Tensors'
+            vids2 = os.listdir(os.path.join('..', config['dataset']['path'], 'stall_Tensors'))
+            vids2 = [vid.split('.')[0]+'.mp4' for vid in vids2]
+            stall_Tensors_pd = self.df_dataset.loc[(self.df_dataset['filename'].isin(vids2))]
+            stall_Tensors_pd['foldername'] ='stall_Tensors'
 
-        vids2 = os.listdir(os.path.join('..', config['dataset']['path'], 'stall_Tensors'))
-        vids2 = [vid.split('.')[0]+'.mp4' for vid in vids2]
-        stall_Tensors_pd = self.df_dataset.loc[(self.df_dataset['filename'].isin(vids2))]
-        stall_Tensors_pd['foldername'] ='stall_Tensors'
+            if not os.path.exists(os.path.join(config['dataset']['path'], "temp_balanced_dataset_pd.pandas")):
+                self.df_dataset = pd.DataFrame()
+                #         self.flowing_Tensors_pd = self.flowing_Tensors_pd.iloc[:100]
+                counter = 0
+                len_stall = len(stall_Tensors_pd) - 1
 
-        if not os.path.exists(os.path.join(config['dataset']['path'], "temp_balanced_dataset_pd.pandas")):
-            self.df_dataset = pd.DataFrame()
-            #         self.flowing_Tensors_pd = self.flowing_Tensors_pd.iloc[:100]
-            counter = 0
-            len_stall = len(stall_Tensors_pd) - 1
+                flowing_Tensors_pd = flowing_Tensors_pd.iloc[:2000]
 
-            flowing_Tensors_pd = flowing_Tensors_pd.iloc[:2000]
+                # balance data
+                for rowt in tqdm(flowing_Tensors_pd.iterrows(), total=len(flowing_Tensors_pd)):
+                    indx = rowt[0]
+                    row = rowt[1]
 
-            # balance data
-            for rowt in tqdm(flowing_Tensors_pd.iterrows(), total=len(flowing_Tensors_pd)):
-                indx = rowt[0]
-                row = rowt[1]
+                    self.df_dataset = self.df_dataset.append(row)
+                    self.df_dataset = self.df_dataset.append(stall_Tensors_pd.iloc[counter])
+                    counter = [0, counter + 1][counter < len_stall]
 
-                self.df_dataset = self.df_dataset.append(row)
-                self.df_dataset = self.df_dataset.append(stall_Tensors_pd.iloc[counter])
-                counter = [0, counter + 1][counter < len_stall]
+                self.df_dataset = self.df_dataset.reset_index(drop=True)
 
-            self.df_dataset = self.df_dataset.reset_index(drop=True)
-
-            with open(os.path.join(config['dataset']['path'], f"temp_balanced_dataset_pd.pandas"), 'wb') as handel:
-                pickle.dump(self.df_dataset, handel, protocol=pickle.HIGHEST_PROTOCOL)
+                with open(os.path.join(config['dataset']['path'], f"temp_balanced_dataset_pd.pandas"), 'wb') as handel:
+                    pickle.dump(self.df_dataset, handel, protocol=pickle.HIGHEST_PROTOCOL)
 
 
-        else:
-            with open (os.path.join(config['dataset']['path'], f"temp_balanced_dataset_pd.pandas"),'rb') as handle:
-                self.df_dataset = pickle.load(handle)
+            else:
+                with open (os.path.join(config['dataset']['path'], f"temp_balanced_dataset_pd.pandas"),'rb') as handle:
+                    self.df_dataset = pickle.load(handle)
 
-        # self.df_dataset = self.df_dataset.iloc[:5000]
-        self.df_dataset =self.df_dataset.drop(self.df_dataset.loc[self.df_dataset['filename'] == '684600.mp4'].index)
-        #print("********************" , self.df_dataset.loc[self.df_dataset['filename'] == '684600.mp4'])
+            # self.df_dataset = self.df_dataset.iloc[:5000]
+            self.df_dataset =self.df_dataset.drop(self.df_dataset.loc[self.df_dataset['filename'] == '684600.mp4'].index)
+            #print("********************" , self.df_dataset.loc[self.df_dataset['filename'] == '684600.mp4'])
+
+            # elif self.type == 'test':
 
 
         print(len(self.df_dataset))

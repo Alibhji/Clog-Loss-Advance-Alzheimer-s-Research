@@ -167,7 +167,8 @@ class ClogLossDataset_downloader:
         if online_data:
             
             self.download_fldr = os.path.join(self.dataPath ,self.download_fldr )
-            if not os.path.exists(f"./{self.saveDatasetDir}"):
+            print(f"./{self.saveDatasetDir}")
+            if not os.path.exists(f"{self.saveDatasetDir}"):
                 os.mkdir(self.saveDatasetDir)
             credentials_path = config['dataset']['credentials_path']
             with open (credentials_path , 'rb') as f:
@@ -198,12 +199,23 @@ class ClogLossDataset_downloader:
         print(f"Orginal Dataset >>>>>>> ", len(self.df_dataset))
         if type =='train':
             self.filter_dataset()
+
+        available_data = [itm.split('.')[0]+'.mp4' for itm in os.listdir(self.saveDatasetDir) ]
+        # print(self.df_dataset[np.logical_not(self.df_dataset['filename'].isin(available_data))])
+
+        print(len(available_data), f"videos are already downloaded out of the {len(self.df_dataset)}")
+        self.df_dataset = self.df_dataset[np.logical_not(self.df_dataset['filename'].isin(available_data))]
+        print(len(self.df_dataset), '"videos remain for download."')
+
         # limit_data
         lim_min = self.cfg['dataset']['filter']['limit']['min']
         lim_max = self.cfg['dataset']['filter']['limit']['max']
         lim_flag = self.cfg['dataset']['filter']['limit']['flag']
         if lim_flag:
             self.df_dataset = self.df_dataset.iloc[lim_min :lim_max]
+
+
+
             
         with open(os.path.join(self.saveDatasetDir, f"{os.path.basename(self.saveDatasetDir)}.pandas"),'wb') as handel:
             pickle.dump(self.df_dataset , handel ,protocol=pickle.HIGHEST_PROTOCOL)

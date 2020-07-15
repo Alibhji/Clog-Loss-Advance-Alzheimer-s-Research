@@ -3,10 +3,7 @@
 
 import sys
 import yaml
-from tqdm import tqdm
-import os
-import gc
-import pandas as pd
+import  pickle
 
 
 package_path = '..'
@@ -22,7 +19,7 @@ with open (config , 'rb') as f:
     config = yaml.load(f ,Loader=yaml.FullLoader)
 
 # print(config)
-dataset = DataSet(config)
+dataset = DataSet(config , datatype = 'test')
 
 
 
@@ -45,41 +42,46 @@ import tensorflow as tf
 import keras.backend.tensorflow_backend as tfback
 
 from keras.callbacks import ModelCheckpoint
+from keras import models
 
 physical_devices = tf.config.experimental.list_physical_devices('GPU')
 for physical_device in physical_devices:
     tf.config.experimental.set_memory_growth(physical_device, True)
 
+#
+#
+# model = Sequential()
+# model.add(TimeDistributed(Conv2D(32, (7, 7), strides=(2, 2), activation='relu', padding='same'),
+#                           input_shape=(100, 224, 224, 1)))
+# model.add(TimeDistributed(Conv2D(32, (3, 3), kernel_initializer="he_normal", activation='relu')))
+# model.add(TimeDistributed(MaxPooling2D((2, 2), strides=(2, 2))))
+#
+# model.add(TimeDistributed(Conv2D(64, (3, 3), padding='same', activation='relu')))
+# model.add(TimeDistributed(Conv2D(64, (3, 3), padding='same', activation='relu')))
+# model.add(TimeDistributed(MaxPooling2D((2, 2), strides=(2, 2))))
+#
+# model.add(TimeDistributed(Conv2D(128, (3, 3), padding='same', activation='relu')))
+# model.add(TimeDistributed(Conv2D(128, (3, 3), padding='same', activation='relu')))
+# model.add(TimeDistributed(MaxPooling2D((2, 2), strides=(2, 2))))
+#
+# model.add(TimeDistributed(Conv2D(256, (3, 3), padding='same', activation='relu')))
+# model.add(TimeDistributed(Conv2D(256, (3, 3), padding='same', activation='relu')))
+# model.add(TimeDistributed(MaxPooling2D((2, 2), strides=(2, 2))))
+#
+# model.add(TimeDistributed(Conv2D(512, (3, 3), padding='same', activation='relu')))
+# model.add(TimeDistributed(Conv2D(512, (3, 3), padding='same', activation='relu')))
+# model.add(TimeDistributed(MaxPooling2D((2, 2), strides=(2, 2))))
+#
+# model.add(TimeDistributed(Flatten()))
+#
+# model.add(Dropout(0.5))
+# model.add(LSTM(256, return_sequences=False, dropout=0.5))
+# model.add(Dense(2, activation='softmax'))
+# model.summary()
 
+weights_path = '/home/mjamali/proj/B/Clog/script/weights-improvement-09-0.59.hdf5'
+model = models.load_model(weights_path)
 
-model = Sequential()
-model.add(TimeDistributed(Conv2D(32, (7, 7), strides=(2, 2), activation='relu', padding='same'),
-                          input_shape=(100, 224, 224, 1)))
-model.add(TimeDistributed(Conv2D(32, (3, 3), kernel_initializer="he_normal", activation='relu')))
-model.add(TimeDistributed(MaxPooling2D((2, 2), strides=(2, 2))))
-
-model.add(TimeDistributed(Conv2D(64, (3, 3), padding='same', activation='relu')))
-model.add(TimeDistributed(Conv2D(64, (3, 3), padding='same', activation='relu')))
-model.add(TimeDistributed(MaxPooling2D((2, 2), strides=(2, 2))))
-
-model.add(TimeDistributed(Conv2D(128, (3, 3), padding='same', activation='relu')))
-model.add(TimeDistributed(Conv2D(128, (3, 3), padding='same', activation='relu')))
-model.add(TimeDistributed(MaxPooling2D((2, 2), strides=(2, 2))))
-
-model.add(TimeDistributed(Conv2D(256, (3, 3), padding='same', activation='relu')))
-model.add(TimeDistributed(Conv2D(256, (3, 3), padding='same', activation='relu')))
-model.add(TimeDistributed(MaxPooling2D((2, 2), strides=(2, 2))))
-
-model.add(TimeDistributed(Conv2D(512, (3, 3), padding='same', activation='relu')))
-model.add(TimeDistributed(Conv2D(512, (3, 3), padding='same', activation='relu')))
-model.add(TimeDistributed(MaxPooling2D((2, 2), strides=(2, 2))))
-
-model.add(TimeDistributed(Flatten()))
-
-model.add(Dropout(0.5))
-model.add(LSTM(256, return_sequences=False, dropout=0.5))
-model.add(Dense(2, activation='softmax'))
-model.summary()
 
 
 data = DataSet(config)
@@ -127,15 +129,24 @@ epochs = 100
 size = (224, 224)
 
 # train_steps = len(X_train) / batch_size
-valid_steps = len(X_test) / batch_size
+test_steps = len(X_test) / batch_size
 
 parallel_model = multi_gpu_model(model, gpus=4)
-parallel_model.compile(optimizer=Adam(lr=0.00005), loss='binary_crossentropy', metrics = ['accuracy'])
 
-parallel_model.fit_generator(data.data_generator(X_train, 'standard', size=size, batch_size=batch_size),
-                    train_steps, epochs=epochs, callbacks=callbacks_list, verbose=1,
-                    validation_data=data.data_generator(X_test, 'standard', size=size, batch_size=batch_size),
-                    validation_steps=valid_steps) #, workers=30 ,use_multiprocessing= True)
+ynew  =model.predict(data.data_generator(X_test, 'standard', size=size, batch_size=batch_size)
+              , steps= test_steps ,verbose=1)
+
+print(ynew)
+
+with open('model_output.out','wb') as file:
+    pickle.dump(ynew, file, protocol=pickle.HIGHEST_PROTOCOL)
+print(f"Model estimation is saved at model_output.out")
+# parallel_model.compile(optimizer=Adam(lr=0.00005), loss='binary_crossentropy', metrics = ['accuracy'])
+
+# parallel_model.fit_generator(data.data_generator(X_train, 'standard', size=size, batch_size=batch_size),
+#                     train_steps, epochs=epochs, callbacks=callbacks_list, verbose=1,
+#                     validation_data=data.data_generator(X_test, 'standard', size=size, batch_size=batch_size),
+#                     validation_steps=valid_steps) #, workers=30 ,use_multiprocessing= True)
 
 # model.compile(optimizer=Adam(lr=0.0001), loss='categorical_crossentropy', metrics=['accuracy'])
 #
