@@ -191,6 +191,7 @@ class ClogLossDataset_downloader:
 #                 print(s3_file.key) # prints the contents of bucket
                 
         else:
+            whole_dataset = self.df_dataset
             df = pd.DataFrame([file for file in os.listdir(self.videoPath)  if file.split('.')[-1] == 'mp4'], columns=['filename'])
             self.df_dataset = self.df_dataset[metaData['filename'].isin(df['filename'])]
             self.df_dataset = self.df_dataset.reset_index(drop = True)
@@ -199,6 +200,7 @@ class ClogLossDataset_downloader:
         print(f"Orginal Dataset >>>>>>> ", len(self.df_dataset))
         if type =='train':
             self.filter_dataset()
+            whole_dataset = self.df_dataset
 
         available_data = [itm.split('.')[0]+'.mp4' for itm in os.listdir(self.saveDatasetDir)  if itm.split('.')[1]=='lzma']
 
@@ -219,7 +221,7 @@ class ClogLossDataset_downloader:
 
             
         with open(os.path.join(self.saveDatasetDir, f"{os.path.basename(self.saveDatasetDir)}.pandas"),'wb') as handel:
-            pickle.dump(self.df_dataset , handel ,protocol=pickle.HIGHEST_PROTOCOL)
+            pickle.dump(whole_dataset, handel ,protocol=pickle.HIGHEST_PROTOCOL)
             
         self.number_of_objec = len(self.df_dataset)
         self.current_row=0

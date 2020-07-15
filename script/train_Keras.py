@@ -40,6 +40,7 @@ from keras.datasets import imdb
 
 from keras.utils import multi_gpu_model
 from keras.optimizers import Adam, SGD
+from keras import backend as K
 
 import tensorflow as tf
 import keras.backend.tensorflow_backend as tfback
@@ -83,8 +84,8 @@ model.summary()
 
 
 data = DataSet(config)
-# X_train, X_test, y_train, y_test = data.split_train_test()
-X_test = data.df_dataset
+X_train, X_test, y_train, y_test = data.split_train_test()
+# X_test = data.df_dataset
 
 
 print("tf.__version__ is", tf.__version__)
@@ -122,15 +123,23 @@ callbacks_list = [checkpoint]
 # checkpoint
 filepath="weights-improvement-{epoch:02d}-{val_accuracy:.2f}.hdf5"
 
+def focal_loss(gamma=2., alpha=.25):
+	def focal_loss_fixed(y_true, y_pred):
+		pt_1 = tf.where(tf.equal(y_true, 1), y_pred, tf.ones_like(y_pred))
+		pt_0 = tf.where(tf.equal(y_true, 0), y_pred, tf.zeros_like(y_pred))
+		return -K.mean(alpha * K.pow(1. - pt_1, gamma) * K.log(pt_1)) - K.mean((1 - alpha) * K.pow(pt_0, gamma) * K.log(1. - pt_0))
+	return focal_loss_fixed
+
 batch_size = 8
 epochs = 100
 size = (224, 224)
 
-# train_steps = len(X_train) / batch_size
+train_steps = len(X_train) / batch_size
 valid_steps = len(X_test) / batch_size
 
 parallel_model = multi_gpu_model(model, gpus=4)
-parallel_model.compile(optimizer=Adam(lr=0.00005), loss='binary_crossentropy', metrics = ['accuracy'])
+# parallel_model.compile(optimizer=Adam(lr=0.00001), loss='binary_crossentropy', metrics = ['accuracy'])
+parallel_model.compile(optimizer=Adam(lr=0.00001), loss=[focal_loss(alpha=.25, gamma=2)],metrics = ['accuracy'])
 
 parallel_model.fit_generator(data.data_generator(X_train, 'standard', size=size, batch_size=batch_size),
                     train_steps, epochs=epochs, callbacks=callbacks_list, verbose=1,

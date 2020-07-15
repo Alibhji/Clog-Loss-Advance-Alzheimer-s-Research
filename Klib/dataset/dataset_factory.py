@@ -34,10 +34,11 @@ class DataSet():
             self.df_dataset = pickle.load(file)
 
         if self.type =='train':
-            vids1 = os.listdir(os.path.join('..', config['dataset']['path'], 'flowing_Tensors'))
+            flow_folder = 'flowing_Tensors__'
+            vids1 = os.listdir(os.path.join('..', config['dataset']['path'], flow_folder))
             vids1 = [vid.split('.')[0]+'.mp4' for vid in vids1]
             flowing_Tensors_pd = self.df_dataset.loc[(self.df_dataset['filename'].isin(vids1))]
-            flowing_Tensors_pd['foldername'] ='flowing_Tensors'
+            flowing_Tensors_pd['foldername'] = flow_folder
 
             vids2 = os.listdir(os.path.join('..', config['dataset']['path'], 'stall_Tensors'))
             vids2 = [vid.split('.')[0]+'.mp4' for vid in vids2]

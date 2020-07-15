@@ -14,10 +14,12 @@ from multiprocessing  import  cpu_count
 
 def call_a_video(index):
     global counter ,dataset_len
-    counter +=1
+
     _,meta=video_downloder[index]
+    counter +=1
     print(f"{counter:6d} / {dataset_len} --> {(counter / dataset_len) * 100:07.5f} %  "
           f"[{meta['filename']}] [shape: {meta['tensor_size' ]}]")
+
     return index
 
 def calculateParallel( threads= cpu_count):
@@ -32,13 +34,11 @@ def run_multi_proc() :
 
     runprocess = calculateParallel( threads=cpu_count)
 
-    
+dataset_type='train'
 # config = './config.yml'
-#config = '../script/configs/download/config_flowing.yml'
+config = '../script/configs/download/config_flowing.yml'
 #config = '../script/configs/download/config_stall.yml'
-# config = '../script/configs/download/config_stall.yml'
-
-config = '../script/configs/download/config_test_dataset.yml'
+# config = '../script/configs/download/config_test_dataset.yml'
 
 with open (config , 'rb') as f:
     config = yaml.load(f ,Loader=yaml.FullLoader)
@@ -49,7 +49,7 @@ counter =0
 
 
 # video_downloder = ClogLossDataset_downloader(config  , split='train')
-video_downloder = ClogLossDataset_downloader(config  , type='test')
+video_downloder = ClogLossDataset_downloader(config  , type=dataset_type)
 
 dataset_len = len(video_downloder)
 print("The dataset len is :" ,dataset_len)
