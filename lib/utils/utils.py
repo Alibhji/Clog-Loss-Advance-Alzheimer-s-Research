@@ -119,7 +119,7 @@ class create_new_experiment:
 
 
 class ClogLossDataset_downloader:
-    def __init__(self, config , online_data= True , draw_3d = False ):
+    def __init__(self, config , online_data= True , draw_3d = False ,type='train'):
         self.cfg = config
         self.dataPath = config['dataset']['path']
         self.videoPath = os.path.join(config['dataset']['path'], 'video')
@@ -129,24 +129,39 @@ class ClogLossDataset_downloader:
         self.saveDatasetDir  = config['dataset']['save_dir']
         self.download_fldr = 'downloded_data'
         self.size = config['dataset']['size']
+        self.type = type
         
        # if not os.path.exists(self.download_fldr):
            # os.makedirs(self.download_fldr)
-        
-        metaData = os.path.join(self.dataPath ,'train_metadata.csv')
-        metaData = pd.read_csv(metaData)
-        
-        label = os.path.join(self.dataPath ,'train_labels.csv')
-        label = pd.read_csv(label)
-        
-        self.df_dataset = metaData
-        self.df_dataset['stalled'] =label['stalled']
+
+
+        if type=='train':
+            metaData = os.path.join(self.dataPath ,'train_metadata.csv')
+            metaData = pd.read_csv(metaData)
+
+            label = os.path.join(self.dataPath ,'train_labels.csv')
+            label = pd.read_csv(label)
+
+            self.df_dataset = metaData
+            self.df_dataset['stalled'] =label['stalled']
+            self.df_dataset['vid_id'] = self.df_dataset.index
+            with open(os.path.join(config['dataset']['path'], 'whole_train_dataset.pandas'), 'wb') as handel:
+                pickle.dump(self.df_dataset, handel, protocol=pickle.HIGHEST_PROTOCOL)
+
+        elif type=='test':
+            metaData = os.path.join(self.dataPath, 'test_metadata.csv')
+            metaData = pd.read_csv(metaData)
+            self.df_dataset = metaData
+            self.df_dataset['vid_id'] = self.df_dataset.index
+            with open(os.path.join(config['dataset']['path'], 'whole_test_dataset.pandas'), 'wb') as handel:
+                pickle.dump(self.df_dataset, handel, protocol=pickle.HIGHEST_PROTOCOL)
+
         
 #         self.df_dataset = metaData[metaData['filename'].isin(df['filename'])]
 #         self.df_dataset['stalled'] =label[label['filename'].isin(df['filename'])]['stalled']
-        self.df_dataset['vid_id'] = self.df_dataset.index
-        with open(os.path.join(config['dataset']['path'],'whole_train_dataset.pandas'),'wb') as handel:
-            pickle.dump(self.df_dataset , handel ,protocol=pickle.HIGHEST_PROTOCOL)
+#         self.df_dataset['vid_id'] = self.df_dataset.index
+#         with open(os.path.join(config['dataset']['path'],'whole_train_dataset.pandas'),'wb') as handel:
+#             pickle.dump(self.df_dataset , handel ,protocol=pickle.HIGHEST_PROTOCOL)
         
         
         if online_data:
@@ -181,7 +196,8 @@ class ClogLossDataset_downloader:
             
         # filter dataset
         print(f"Orginal Dataset >>>>>>> ", len(self.df_dataset))
-        self.filter_dataset()
+        if type =='train':
+            self.filter_dataset()
         # limit_data
         lim_min = self.cfg['dataset']['filter']['limit']['min']
         lim_max = self.cfg['dataset']['filter']['limit']['max']
@@ -390,11 +406,17 @@ class ClogLossDataset_downloader:
 
     def __getitem__(self, index):
         row = self.df_dataset.iloc[index]
-        metadata = self.create_metadata(row)
+        if self.type == 'train':
+            metadata = self.create_metadata(row)
+        elif self.type == 'test':
+            metadata = {}
+            metadata['filename'] = row.filename
+            metadata['vid_id'] = row.vid_id
+            metadata['stalled'] = -1
 
         if self.online_data:
             vid_p = os.path.join(self.download_fldr, f"{row.filename}")
-            self.bucket.download_file(f"train/{row.filename}", vid_p)
+            self.bucket.download_file(f"{self.type}/{row.filename}", vid_p)
             vidcap = cv2.VideoCapture(vid_p)
         #
         else:

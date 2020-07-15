@@ -34,15 +34,21 @@ class ClogLossDataset(Dataset):
         self.dataPath = config['dataset']['path']
         self.videoPath = os.path.join(config['dataset']['path'], 'video')
         self.online_data = online_data
+        if type == 'train':
+            metaData = os.path.join(self.dataPath, 'train_metadata.csv')
+            metaData = pd.read_csv(metaData)
 
-        metaData = os.path.join(self.dataPath, 'train_metadata.csv')
-        metaData = pd.read_csv(metaData)
+            label = os.path.join(self.dataPath, 'train_labels.csv')
+            label = pd.read_csv(label)
 
-        label = os.path.join(self.dataPath, 'train_labels.csv')
-        label = pd.read_csv(label)
+            self.df_dataset = metaData
+            self.df_dataset['stalled'] = label['stalled']
 
-        self.df_dataset = metaData
-        self.df_dataset['stalled'] = label['stalled']
+        elif type == 'test':
+            metaData = os.path.join(self.dataPath, 'test_metadata.csv')
+            metaData = pd.read_csv(metaData)
+            self.df_dataset = metaData
+
 
         #         self.df_dataset = metaData[metaData['filename'].isin(df['filename'])]
         #         self.df_dataset['stalled'] =label[label['filename'].isin(df['filename'])]['stalled']

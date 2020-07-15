@@ -34,9 +34,11 @@ def run_multi_proc() :
 
     
 # config = './config.yml'
-config = '../script/configs/download/config_flowing.yml'
+#config = '../script/configs/download/config_flowing.yml'
 #config = '../script/configs/download/config_stall.yml'
+# config = '../script/configs/download/config_stall.yml'
 
+config = '../script/configs/download/config_test_dataset.yml'
 
 with open (config , 'rb') as f:
     config = yaml.load(f ,Loader=yaml.FullLoader)
@@ -46,7 +48,8 @@ cpu_count = config['dataset']['Multiprocessing_num_cores']
 counter =0
 
 
-video_downloder = ClogLossDataset_downloader(config )
+# video_downloder = ClogLossDataset_downloader(config  , split='train')
+video_downloder = ClogLossDataset_downloader(config  , type='test')
 
 dataset_len = len(video_downloder)
 print("The dataset len is :" ,dataset_len)

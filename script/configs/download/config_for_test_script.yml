@@ -1,49 +1,21 @@
-
-train:
-    resultDirectoryName : result
-    experimentFolder : dir1
-    experimentName: exp1_lr0001
-    
-    trainBatchSize : 32
-    valBatchSize : 32
-    num_Workers : 35
-    startEpoch : 0
-    endEpoch :   150
-    lr:
-        init: 0.0005
-        lr_decay :  0.8
-        lr_decay_epoch : 10
-    device : cuda:0
-        
-options:
-    logger:
-        flag: True
-    
-model:
-    load:
-        flag: False
-        path: "./"
-    
-
 dataset:
     path: /home/mjamali/proj/B/data
     num_frames: 65
     credentials_path: /home/mjamali/proj/B/data/credentials.yml
     remove_donloaded_video : True
-    save_dir : /home/mjamali/proj/B/data/flowing_Tensors
-    Multiprocessing_num_cores : 30
-    
-    K: 10 # ten-fold train-val
+    save_dir : /home/mjamali/proj/B/data/for_test
+    Multiprocessing_num_cores : 4
+    size : [224,224]
     
     filter:
         limit :
-            flag: False
+            flag: True
             min: 0
             max: 100
             
         tier1 : 
             - True
-            - False
+            # - False
         project_id :
             - A
             - C
@@ -53,8 +25,8 @@ dataset:
             - G
             - H
             - I
-            - J        
-            - K  
+            - J         
+            - K
             - L               
             - M
         stalled:
