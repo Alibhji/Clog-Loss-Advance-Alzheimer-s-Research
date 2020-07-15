@@ -200,7 +200,8 @@ class ClogLossDataset_downloader:
         if type =='train':
             self.filter_dataset()
 
-        available_data = [itm.split('.')[0]+'.mp4' for itm in os.listdir(self.saveDatasetDir) ]
+        available_data = [itm.split('.')[0]+'.mp4' for itm in os.listdir(self.saveDatasetDir)  if itm.split('.')[1]=='lzma']
+
         # print(self.df_dataset[np.logical_not(self.df_dataset['filename'].isin(available_data))])
 
         print(len(available_data), f"videos are already downloaded out of the {len(self.df_dataset)}")
@@ -414,7 +415,7 @@ class ClogLossDataset_downloader:
         return meta_data
     
     def __len__(self):
-        return len(self.df_dataset)-1
+        return len(self.df_dataset)
 
     def __getitem__(self, index):
         row = self.df_dataset.iloc[index]
