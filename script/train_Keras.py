@@ -8,6 +8,7 @@ import os
 import gc
 import pandas as pd
 
+os.environ["CUDA_VISIBLE_DEVICES"]="0,1,2,3"
 
 package_path = '..'
 # package_path = '../../script2/Result/nuScenes/exp3/sources/'
@@ -47,40 +48,16 @@ import keras.backend.tensorflow_backend as tfback
 
 from keras.callbacks import ModelCheckpoint
 
-physical_devices = tf.config.experimental.list_physical_devices('GPU')
-for physical_device in physical_devices:
-    tf.config.experimental.set_memory_growth(physical_device, True)
+# physical_devices = tf.config.experimental.list_physical_devices('GPU')
+# for physical_device in physical_devices:
+#     tf.config.experimental.set_memory_growth(physical_device, True)
+
+
+strategy = tf.distribute.MirroredStrategy()
 
 
 
-model = Sequential()
-model.add(TimeDistributed(Conv2D(32, (7, 7), strides=(2, 2), activation='relu', padding='same'),
-                          input_shape=(100, 224, 224, 1)))
-model.add(TimeDistributed(Conv2D(32, (3, 3), kernel_initializer="he_normal", activation='relu')))
-model.add(TimeDistributed(MaxPooling2D((2, 2), strides=(2, 2))))
 
-model.add(TimeDistributed(Conv2D(64, (3, 3), padding='same', activation='relu')))
-model.add(TimeDistributed(Conv2D(64, (3, 3), padding='same', activation='relu')))
-model.add(TimeDistributed(MaxPooling2D((2, 2), strides=(2, 2))))
-
-model.add(TimeDistributed(Conv2D(128, (3, 3), padding='same', activation='relu')))
-model.add(TimeDistributed(Conv2D(128, (3, 3), padding='same', activation='relu')))
-model.add(TimeDistributed(MaxPooling2D((2, 2), strides=(2, 2))))
-
-model.add(TimeDistributed(Conv2D(256, (3, 3), padding='same', activation='relu')))
-model.add(TimeDistributed(Conv2D(256, (3, 3), padding='same', activation='relu')))
-model.add(TimeDistributed(MaxPooling2D((2, 2), strides=(2, 2))))
-
-model.add(TimeDistributed(Conv2D(512, (3, 3), padding='same', activation='relu')))
-model.add(TimeDistributed(Conv2D(512, (3, 3), padding='same', activation='relu')))
-model.add(TimeDistributed(MaxPooling2D((2, 2), strides=(2, 2))))
-
-model.add(TimeDistributed(Flatten()))
-
-model.add(Dropout(0.5))
-model.add(LSTM(256, return_sequences=False, dropout=0.5))
-model.add(Dense(2, activation='softmax'))
-model.summary()
 
 
 data = DataSet(config)
@@ -130,12 +107,47 @@ def focal_loss(gamma=2., alpha=.25):
 		return -K.mean(alpha * K.pow(1. - pt_1, gamma) * K.log(pt_1)) - K.mean((1 - alpha) * K.pow(pt_0, gamma) * K.log(1. - pt_0))
 	return focal_loss_fixed
 
-batch_size = 8
+batch_size = 32
 epochs = 100
 size = (224, 224)
 
 train_steps = len(X_train) / batch_size
 valid_steps = len(X_test) / batch_size
+
+
+
+with strategy.scope():
+    model = Sequential()
+    model.add(TimeDistributed(Conv2D(32, (7, 7), strides=(2, 2), activation='relu', padding='same'),
+                              input_shape=(100, 224, 224, 1)))
+    model.add(TimeDistributed(Conv2D(32, (3, 3), kernel_initializer="he_normal", activation='relu')))
+    model.add(TimeDistributed(MaxPooling2D((2, 2), strides=(2, 2))))
+
+    model.add(TimeDistributed(Conv2D(64, (3, 3), padding='same', activation='relu')))
+    model.add(TimeDistributed(Conv2D(64, (3, 3), padding='same', activation='relu')))
+    model.add(TimeDistributed(MaxPooling2D((2, 2), strides=(2, 2))))
+
+    model.add(TimeDistributed(Conv2D(128, (3, 3), padding='same', activation='relu')))
+    model.add(TimeDistributed(Conv2D(128, (3, 3), padding='same', activation='relu')))
+    model.add(TimeDistributed(MaxPooling2D((2, 2), strides=(2, 2))))
+
+    model.add(TimeDistributed(Conv2D(256, (3, 3), padding='same', activation='relu')))
+    model.add(TimeDistributed(Conv2D(256, (3, 3), padding='same', activation='relu')))
+    model.add(TimeDistributed(MaxPooling2D((2, 2), strides=(2, 2))))
+
+    model.add(TimeDistributed(Conv2D(512, (3, 3), padding='same', activation='relu')))
+    model.add(TimeDistributed(Conv2D(512, (3, 3), padding='same', activation='relu')))
+    model.add(TimeDistributed(MaxPooling2D((2, 2), strides=(2, 2))))
+
+    model.add(TimeDistributed(Flatten()))
+
+    model.add(Dropout(0.2))
+    model.add(LSTM(256, return_sequences=False, dropout=0.2))
+    model.add(Dense(2, activation='sigmoid'))
+    model.summary()
+
+
+
 
 parallel_model = multi_gpu_model(model, gpus=4)
 # parallel_model.compile(optimizer=Adam(lr=0.00001), loss='binary_crossentropy', metrics = ['accuracy'])
@@ -144,7 +156,7 @@ parallel_model.compile(optimizer=Adam(lr=0.00001), loss=[focal_loss(alpha=.25, g
 parallel_model.fit_generator(data.data_generator(X_train, 'standard', size=size, batch_size=batch_size),
                     train_steps, epochs=epochs, callbacks=callbacks_list, verbose=1,
                     validation_data=data.data_generator(X_test, 'standard', size=size, batch_size=batch_size),
-                    validation_steps=valid_steps) #, workers=30 ,use_multiprocessing= True)
+                    validation_steps=valid_steps , workers=39 )#,use_multiprocessing= True)
 
 # model.compile(optimizer=Adam(lr=0.0001), loss='categorical_crossentropy', metrics=['accuracy'])
 #

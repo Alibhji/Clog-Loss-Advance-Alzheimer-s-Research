@@ -21,20 +21,38 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import joblib
+import threading
 
+class ThreadSafeIterator:
+    """
+    Takes an iterator/generator and makes it thread-safe by
+    serializing call to the `next` method of given iterator/generator.
+    """
+
+    def __init__(self, it):
+        self.it = it
+        self.lock = threading.Lock()
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        with self.lock:
+            return self.it.__next__()
 
 class DataSet():
     def __init__(self, config , datatype = 'train'):
         self.type = datatype
         self.config = config
         self.vid_path = os.path.join('..', config['dataset']['path'])
+        self.lock = threading.Lock()
 
 
         with open(os.path.join(config['dataset']['path'] ,f'whole_{self.type}_dataset.pandas'), 'rb') as file:
             self.df_dataset = pickle.load(file)
 
         if self.type =='train':
-            flow_folder = 'flowing_Tensors__'
+            flow_folder = 'flowing_Tensors'
             vids1 = os.listdir(os.path.join('..', config['dataset']['path'], flow_folder))
             vids1 = [vid.split('.')[0]+'.mp4' for vid in vids1]
             flowing_Tensors_pd = self.df_dataset.loc[(self.df_dataset['filename'].isin(vids1))]
@@ -51,7 +69,8 @@ class DataSet():
                 counter = 0
                 len_stall = len(stall_Tensors_pd) - 1
 
-                flowing_Tensors_pd = flowing_Tensors_pd.iloc[:2000]
+                # flowing_Tensors_pd = flowing_Tensors_pd.iloc[:2000]
+
 
                 # balance data
                 for rowt in tqdm(flowing_Tensors_pd.iterrows(), total=len(flowing_Tensors_pd)):
@@ -211,6 +230,16 @@ class DataSet():
         onHotTarget[int(tag)] = 1
         return onHotTarget
 
+    def thread_safe_generator(f):
+        """A decorator that takes a generator function and makes it thread-safe."""
+
+        def g(*a, **kw):
+            return ThreadSafeIterator(f(*a, **kw))
+
+        return g
+
+
+    @thread_safe_generator
     def data_generator(self, data, which_net='standard', size=(224, 224), batch_size=2):
         if which_net == 'resnet50':
             preprocessing_function = self.preprocess_input_resnet50
