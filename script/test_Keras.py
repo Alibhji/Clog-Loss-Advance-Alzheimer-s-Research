@@ -4,6 +4,7 @@
 import sys
 import yaml
 import  pickle
+import os
 import pandas as pd
 
 
@@ -33,6 +34,7 @@ from keras.models import Sequential
 from keras.layers import *
 from keras.layers import LSTM
 from keras.datasets import imdb
+from keras import backend as K
 
 
 from keras.utils import multi_gpu_model
@@ -47,6 +49,14 @@ from keras import models
 physical_devices = tf.config.experimental.list_physical_devices('GPU')
 for physical_device in physical_devices:
     tf.config.experimental.set_memory_growth(physical_device, True)
+
+
+def focal_loss(gamma=2., alpha=.25):
+	def focal_loss_fixed(y_true, y_pred):
+		pt_1 = tf.where(tf.equal(y_true, 1), y_pred, tf.ones_like(y_pred))
+		pt_0 = tf.where(tf.equal(y_true, 0), y_pred, tf.zeros_like(y_pred))
+		return -K.mean(alpha * K.pow(1. - pt_1, gamma) * K.log(pt_1)) - K.mean((1 - alpha) * K.pow(pt_0, gamma) * K.log(1. - pt_0))
+	return focal_loss_fixed
 
 #
 #
@@ -78,11 +88,18 @@ for physical_device in physical_devices:
 # model.add(LSTM(256, return_sequences=False, dropout=0.5))
 # model.add(Dense(2, activation='softmax'))
 # model.summary()
-weights_path = '/home/mjamali/proj/B/Clog/script/weights-improvement-09-0.59.hdf5'
-model = models.load_model(weights_path)
 
-# model.summary()
-# mmm
+#weights_path = '/home/mjamali/proj/B/Clog/script/weights-improvement-09-0.59.hdf5'
+#weights_path = '/home/mjamali/proj/B/Clog/script/weights-improvement-04-0.88.hdf5'  # -->3
+# weights_path = "/home/mjamali/proj/B/Clog/script/weights-improvement-05-0.92.hdf5"   # -->4
+# weights_path = "/home/mjamali/proj/B/Clog/script/weights-improvement-02-0.74.hdf5"   # -->5
+# weights_path = "/home/mjamali/proj/B/Clog/script/result_6th/weights-improvement-10-0.97.hdf5"   # -->6
+weights_path = "/home/mjamali/proj/B/Clog/script/result_6th/weights-improvement-08-0.97.hdf5"   # -->7
+
+
+model = models.load_model(weights_path , custom_objects={'FocalLoss': focal_loss, 'focal_loss_fixed': focal_loss()})
+
+model.summary()
 
 data = DataSet(config , datatype = 'test')
 # X_train, X_test, y_train, y_test = data.split_train_test()
@@ -121,11 +138,10 @@ filepath="weights-improvement-{epoch:02d}-{val_accuracy:.2f}.hdf5"
 checkpoint = ModelCheckpoint(filepath, monitor='val_accuracy', verbose=1, save_best_only=True, mode='max')
 callbacks_list = [checkpoint]
 
-# checkpoint
-filepath="weights-improvement-{epoch:02d}-{val_accuracy:.2f}.hdf5"
+
 
 batch_size = 8
-epochs = 100
+
 size = (224, 224)
 
 # train_steps = len(X_train) / batch_size
@@ -149,8 +165,9 @@ print(f"Model estimation is saved at model_output.out")
 submit = pd.read_csv('../../data/submission_format.csv')
 submit['stalled'] = ynew[:,0]
 submit['stalled']  = submit.apply(lambda row: [1,0] [row.stalled>=0.5] ,axis=1)
-
-submit.to_csv('my_submission.csv',index=False)
+folder = 'result_6th'
+save_csv= os.path.join(folder,os.path.splitext(os.path.basename(weights_path))[0]+'.csv')
+submit.to_csv(save_csv,index=False)
 # parallel_model.compile(optimizer=Adam(lr=0.00005), loss='binary_crossentropy', metrics = ['accuracy'])
 
 # parallel_model.fit_generator(data.data_generator(X_train, 'standard', size=size, batch_size=batch_size),
