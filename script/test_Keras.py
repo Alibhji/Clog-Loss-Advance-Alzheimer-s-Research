@@ -45,6 +45,7 @@ import keras.backend.tensorflow_backend as tfback
 
 from keras.callbacks import ModelCheckpoint
 from keras import models
+from keras_layer_normalization import LayerNormalization
 
 physical_devices = tf.config.experimental.list_physical_devices('GPU')
 for physical_device in physical_devices:
@@ -94,10 +95,11 @@ def focal_loss(gamma=2., alpha=.25):
 # weights_path = "/home/mjamali/proj/B/Clog/script/weights-improvement-05-0.92.hdf5"   # -->4
 # weights_path = "/home/mjamali/proj/B/Clog/script/weights-improvement-02-0.74.hdf5"   # -->5
 # weights_path = "/home/mjamali/proj/B/Clog/script/result_6th/weights-improvement-10-0.97.hdf5"   # -->6
-weights_path = "/home/mjamali/proj/B/Clog/script/result_6th/weights-improvement-08-0.97.hdf5"   # -->7
+weights_path = "/home/mjamali/proj/B/Clog/script/result_7th/weights-improvement-07-0.89.hdf5"   # -->7
 
 
-model = models.load_model(weights_path , custom_objects={'FocalLoss': focal_loss, 'focal_loss_fixed': focal_loss()})
+# model = models.load_model(weights_path , custom_objects={'FocalLoss': focal_loss, 'focal_loss_fixed': focal_loss()})
+model = models.load_model(weights_path , custom_objects={'LayerNormalization': LayerNormalization})
 
 model.summary()
 
@@ -165,7 +167,7 @@ print(f"Model estimation is saved at model_output.out")
 submit = pd.read_csv('../../data/submission_format.csv')
 submit['stalled'] = ynew[:,0]
 submit['stalled']  = submit.apply(lambda row: [1,0] [row.stalled>=0.5] ,axis=1)
-folder = 'result_6th'
+folder = 'result_7th'
 save_csv= os.path.join(folder,os.path.splitext(os.path.basename(weights_path))[0]+'.csv')
 submit.to_csv(save_csv,index=False)
 # parallel_model.compile(optimizer=Adam(lr=0.00005), loss='binary_crossentropy', metrics = ['accuracy'])

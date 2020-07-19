@@ -6,7 +6,7 @@ package_path = '..'
 if not package_path in sys.path:
     sys.path.append(package_path)
 
-from lib import ClogLossDataset_downloader
+    from lib import ClogLossDataset_downloader
 import yaml
 from tqdm import tqdm
 from multiprocessing.dummy import Pool as ThreadPool

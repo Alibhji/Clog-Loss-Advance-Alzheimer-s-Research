@@ -214,9 +214,19 @@ class ClogLossDataset_downloader:
         lim_min = self.cfg['dataset']['filter']['limit']['min']
         lim_max = self.cfg['dataset']['filter']['limit']['max']
         lim_flag = self.cfg['dataset']['filter']['limit']['flag']
+
         if lim_flag:
             self.df_dataset = self.df_dataset.iloc[lim_min :lim_max]
+        else:
+            proj_balance = pd.DataFrame()
+            for cls in ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'M']:
+                proj_A = self.df_dataset[self.df_dataset['project_id'] == cls]
+                proj_balance = proj_balance.append(proj_A[:3500])
 
+            proj_A = self.df_dataset[self.df_dataset['project_id'] == 'L']
+            proj_balance = proj_balance.append(proj_A[:3500])
+
+            self.df_dataset = proj_balance
 
 
             
