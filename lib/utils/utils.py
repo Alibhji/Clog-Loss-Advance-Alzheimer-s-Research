@@ -146,7 +146,7 @@ class ClogLossDataset_downloader:
             self.df_dataset['stalled'] =label['stalled']
             self.df_dataset['vid_id'] = self.df_dataset.index
             with open(os.path.join(config['dataset']['path'], 'whole_train_dataset.pandas'), 'wb') as handel:
-                pickle.dump(self.df_dataset, handel, protocol=pickle.HIGHEST_PROTOCOL)
+                pickle.dump(self.df_dataset, handel, protocol=3)
 
         elif type=='test':
             metaData = os.path.join(self.dataPath, 'test_metadata.csv')
@@ -154,7 +154,7 @@ class ClogLossDataset_downloader:
             self.df_dataset = metaData
             self.df_dataset['vid_id'] = self.df_dataset.index
             with open(os.path.join(config['dataset']['path'], 'whole_test_dataset.pandas'), 'wb') as handel:
-                pickle.dump(self.df_dataset, handel, protocol=pickle.HIGHEST_PROTOCOL)
+                pickle.dump(self.df_dataset, handel, protocol=3)
 
         
 #         self.df_dataset = metaData[metaData['filename'].isin(df['filename'])]

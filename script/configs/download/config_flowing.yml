@@ -3,13 +3,13 @@ dataset:
     num_frames: 65
     credentials_path: /home/mjamali/proj/B/data/credentials.yml
     remove_donloaded_video : True
-    save_dir : /home/mjamali/proj/B/data/flowing_Tensors
+    save_dir : /home/mjamali/proj/B/data/flowing_Tensors_balance3500
     Multiprocessing_num_cores : 39
     size : [224,224]
     
     filter:
         limit :
-            flag: True
+            flag: False
             min: 0
             max: 20000
             

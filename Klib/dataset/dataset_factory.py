@@ -47,12 +47,16 @@ class DataSet():
         self.vid_path = os.path.join('..', config['dataset']['path'])
         self.lock = threading.Lock()
 
-
         with open(os.path.join(config['dataset']['path'] ,f'whole_{self.type}_dataset.pandas'), 'rb') as file:
             self.df_dataset = pickle.load(file)
+        # with open(os.path.join(config['dataset']['path'] ,f'whole_{self.type}_dataset.pandas'), 'rb') as file:
+        #     self.df_dataset = pickle.load(file)
+        #
+        # with open(os.path.join(config['dataset']['path'] ,f'whole_{self.type}_dataset_.pandas'), 'wb') as file:
+        #     pickle.dump(self.df_dataset, file, protocol=3)
 
         if self.type =='train':
-            flow_folder = 'flowing_Tensors'
+            flow_folder = 'flowing_Tensors_balance3500'
             vids1 = os.listdir(os.path.join('..', config['dataset']['path'], flow_folder))
             vids1 = [vid.split('.')[0]+'.mp4' for vid in vids1]
             flowing_Tensors_pd = self.df_dataset.loc[(self.df_dataset['filename'].isin(vids1))]
@@ -84,7 +88,7 @@ class DataSet():
                 self.df_dataset = self.df_dataset.reset_index(drop=True)
 
                 with open(os.path.join(config['dataset']['path'], f"temp_balanced_dataset_pd.pandas"), 'wb') as handel:
-                    pickle.dump(self.df_dataset, handel, protocol=pickle.HIGHEST_PROTOCOL)
+                    pickle.dump(self.df_dataset, handel, protocol=3)
 
 
             else:
@@ -218,6 +222,9 @@ class DataSet():
             vessels_tensor = np.append(vessels_tensor, np.zeros((100 - len(vessels_tensor), size[0], size[1])), axis=0)
         if vessels_tensor.shape[0] > 100:
             vessels_tensor = vessels_tensor[:100]
+
+        vessels_tensor = vessels_tensor[:40]
+        # print("vessels_tensor" , '---------------------->' , vessels_tensor.shape)
 
 
 
