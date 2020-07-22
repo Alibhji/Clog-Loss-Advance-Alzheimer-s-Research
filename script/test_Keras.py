@@ -59,6 +59,90 @@ def focal_loss(gamma=2., alpha=.25):
 		return -K.mean(alpha * K.pow(1. - pt_1, gamma) * K.log(pt_1)) - K.mean((1 - alpha) * K.pow(pt_0, gamma) * K.log(1. - pt_0))
 	return focal_loss_fixed
 
+
+from keras import initializers, regularizers, constraints
+from keras.engine.topology import Layer
+
+
+class Attention(Layer):
+    def __init__(self, step_dim =40,
+                 W_regularizer=None, b_regularizer=None,
+                 W_constraint=None, b_constraint=None,
+                 bias=True, **kwargs):
+        self.supports_masking = True
+        self.init = initializers.get('glorot_uniform')
+
+        self.W_regularizer = regularizers.get(W_regularizer)
+        self.b_regularizer = regularizers.get(b_regularizer)
+
+        self.W_constraint = constraints.get(W_constraint)
+        self.b_constraint = constraints.get(b_constraint)
+
+        self.bias = bias
+        self.step_dim = step_dim
+        self.features_dim = 0
+        super(Attention, self).__init__(**kwargs)
+
+    def get_config(self):
+        config = {'step_dim': self.step_dim,
+        'bias': self.bias}
+        base_config = super(Attention, self).get_config()
+        return dict(list(base_config.items()) + list(config.items()))
+
+    def build(self, input_shape):
+        assert len(input_shape) == 3
+
+        self.W = self.add_weight((input_shape[-1],),
+                                 initializer=self.init,
+                                 name='{}_W'.format(self.name),
+                                 regularizer=self.W_regularizer,
+                                 constraint=self.W_constraint)
+        self.features_dim = input_shape[-1]
+
+        if self.bias:
+            self.b = self.add_weight((input_shape[1],),
+                                     initializer='zero',
+                                     name='{}_b'.format(self.name),
+                                     regularizer=self.b_regularizer,
+                                     constraint=self.b_constraint)
+        else:
+            self.b = None
+
+        self.built = True
+
+    def compute_mask(self, input, input_mask=None):
+        return None
+
+    def call(self, x, mask=None):
+        features_dim = self.features_dim
+        step_dim = self.step_dim
+
+        eij = K.reshape(K.dot(K.reshape(x, (-1, features_dim)),
+                        K.reshape(self.W, (features_dim, 1))), (-1, step_dim))
+
+        if self.bias:
+            eij += self.b
+
+        eij = K.tanh(eij)
+
+        a = K.exp(eij)
+
+        if mask is not None:
+            a *= K.cast(mask, K.floatx())
+
+        a /= K.cast(K.sum(a, axis=1, keepdims=True) + K.epsilon(), K.floatx())
+
+        a = K.expand_dims(a)
+        weighted_input = x * a
+        return K.sum(weighted_input, axis=1)
+
+    def compute_output_shape(self, input_shape):
+        return input_shape[0],  self.features_dim
+
+
+
+
+
 #
 #
 # model = Sequential()
@@ -95,11 +179,13 @@ def focal_loss(gamma=2., alpha=.25):
 # weights_path = "/home/mjamali/proj/B/Clog/script/weights-improvement-05-0.92.hdf5"   # -->4
 # weights_path = "/home/mjamali/proj/B/Clog/script/weights-improvement-02-0.74.hdf5"   # -->5
 # weights_path = "/home/mjamali/proj/B/Clog/script/result_6th/weights-improvement-10-0.97.hdf5"   # -->6
-weights_path = "/home/mjamali/proj/B/Clog/script/result_7th/weights-improvement-07-0.89.hdf5"   # -->7
+# weights_path = "/home/mjamali/proj/B/Clog/script/result_7th/weights-improvement-07-0.89.hdf5"   # -->7
+weights_path = "/home/mjamali/proj/B/Clog/script/result_10th/weights-improvement-02-0.965.hdf5"   # -->7
 
-
+myAttention = Attention(40)  # This will not give an error.
+model = models.load_model(weights_path)
 # model = models.load_model(weights_path , custom_objects={'FocalLoss': focal_loss, 'focal_loss_fixed': focal_loss()})
-model = models.load_model(weights_path , custom_objects={'LayerNormalization': LayerNormalization})
+# model = models.load_model(weights_path , custom_objects={'Attention': Attention , 'get_config':myAttention})
 
 model.summary()
 
@@ -124,10 +210,10 @@ def _get_available_gpus():
     return [x for x in tfback._LOCAL_DEVICES if 'device:gpu' in x.lower()]
 
 
-tfback._get_available_gpus = _get_available_gpus
-
-#tf.config.experimental_list_devices()
-print(tf.config.list_logical_devices())
+# tfback._get_available_gpus = _get_available_gpus
+#
+# #tf.config.experimental_list_devices()
+# print(tf.config.list_logical_devices())
 
 
 
@@ -167,7 +253,7 @@ print(f"Model estimation is saved at model_output.out")
 submit = pd.read_csv('../../data/submission_format.csv')
 submit['stalled'] = ynew[:,0]
 submit['stalled']  = submit.apply(lambda row: [1,0] [row.stalled>=0.5] ,axis=1)
-folder = 'result_7th'
+folder = 'result_9th'
 save_csv= os.path.join(folder,os.path.splitext(os.path.basename(weights_path))[0]+'.csv')
 submit.to_csv(save_csv,index=False)
 # parallel_model.compile(optimizer=Adam(lr=0.00005), loss='binary_crossentropy', metrics = ['accuracy'])

@@ -200,7 +200,7 @@ class ClogLossDataset_downloader:
         print(f"Orginal Dataset >>>>>>> ", len(self.df_dataset))
         if type =='train':
             self.filter_dataset()
-            whole_dataset = self.df_dataset
+        whole_dataset = self.df_dataset
 
         available_data = [itm.split('.')[0]+'.mp4' for itm in os.listdir(self.saveDatasetDir)  if itm.split('.')[1]=='lzma']
 
@@ -210,23 +210,24 @@ class ClogLossDataset_downloader:
         self.df_dataset = self.df_dataset[np.logical_not(self.df_dataset['filename'].isin(available_data))]
         print(len(self.df_dataset), '"videos remain for download."')
 
-        # limit_data
-        lim_min = self.cfg['dataset']['filter']['limit']['min']
-        lim_max = self.cfg['dataset']['filter']['limit']['max']
-        lim_flag = self.cfg['dataset']['filter']['limit']['flag']
+        if type == 'train':
+            # limit_data
+            lim_min = self.cfg['dataset']['filter']['limit']['min']
+            lim_max = self.cfg['dataset']['filter']['limit']['max']
+            lim_flag = self.cfg['dataset']['filter']['limit']['flag']
 
-        if lim_flag:
-            self.df_dataset = self.df_dataset.iloc[lim_min :lim_max]
-        else:
-            proj_balance = pd.DataFrame()
-            for cls in ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'M']:
-                proj_A = self.df_dataset[self.df_dataset['project_id'] == cls]
+            if lim_flag:
+                self.df_dataset = self.df_dataset.iloc[lim_min :lim_max]
+            else:
+                proj_balance = pd.DataFrame()
+                for cls in ['A', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'M']:
+                    proj_A = self.df_dataset[self.df_dataset['project_id'] == cls]
+                    proj_balance = proj_balance.append(proj_A[:3500])
+
+                proj_A = self.df_dataset[self.df_dataset['project_id'] == 'L']
                 proj_balance = proj_balance.append(proj_A[:3500])
 
-            proj_A = self.df_dataset[self.df_dataset['project_id'] == 'L']
-            proj_balance = proj_balance.append(proj_A[:3500])
-
-            self.df_dataset = proj_balance
+                self.df_dataset = proj_balance
 
 
             

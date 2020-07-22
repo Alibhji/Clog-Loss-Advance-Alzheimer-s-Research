@@ -95,7 +95,7 @@ class DataSet():
                 with open (os.path.join(config['dataset']['path'], f"temp_balanced_dataset_pd.pandas"),'rb') as handle:
                     self.df_dataset = pickle.load(handle)
 
-            # self.df_dataset = self.df_dataset.iloc[:5000]
+            # self.df_dataset = self.df_dataset.iloc[:4000]
             self.df_dataset =self.df_dataset.drop(self.df_dataset.loc[self.df_dataset['filename'] == '684600.mp4'].index)
             #print("********************" , self.df_dataset.loc[self.df_dataset['filename'] == '684600.mp4'])
 
@@ -119,7 +119,7 @@ class DataSet():
         print(self.df_dataset.columns)
 
     def split_train_test(self):
-        return train_test_split(self.df_dataset, self.df_dataset.stalled, test_size=0.15, random_state=42)
+        return train_test_split(self.df_dataset, self.df_dataset.stalled, test_size=0.30, random_state=42)
 
     def preprocess_standard(self, x):
         return x / 255.
@@ -195,7 +195,21 @@ class DataSet():
 
         path = os.path.join(self.vid_path, foldername, filename.split('.')[0])
         data__ = joblib.load(f"{path}.lzma")
-        vessels_tensor = data__[0][:, :, :]
+
+        from skimage.transform import  resize
+
+        def resize_tensor(lzma_file, newsize=(112, 112)):
+            tensor = lzma_file[0]
+            tensor = np.moveaxis(tensor, 0, -1)
+            tensor = resize(tensor, newsize, anti_aliasing=True)
+            tensor = np.moveaxis(tensor, -1, 0)
+            return tensor
+
+        # path = '../../../data/flowing_Tensors/100000'
+        # data__ = joblib.load(f"{path}.lzma")
+
+        vessels_tensor = resize_tensor(data__ , (56,56))
+        # vessels_tensor = data__[0][:, :, :]
         #         print(filename)
         #         print(vessels_tensor.shape)
 
@@ -223,12 +237,14 @@ class DataSet():
         if vessels_tensor.shape[0] > 100:
             vessels_tensor = vessels_tensor[:100]
 
-        vessels_tensor = vessels_tensor[:40]
+        vessels_tensor = vessels_tensor[:60]
         # print("vessels_tensor" , '---------------------->' , vessels_tensor.shape)
 
 
 
-        return vessels_tensor[..., np.newaxis]
+        # return vessels_tensor[..., np.newaxis]
+
+        return vessels_tensor
 
     def get_class_one_hot(self, tag, min_value=0):
 
@@ -247,7 +263,7 @@ class DataSet():
 
 
     @thread_safe_generator
-    def data_generator(self, data, which_net='standard', size=(224, 224), batch_size=2):
+    def data_generator(self, data, which_net='standard', size=(56, 56), batch_size=2):
         if which_net == 'resnet50':
             preprocessing_function = self.preprocess_input_resnet50
         elif which_net == 'densenet':

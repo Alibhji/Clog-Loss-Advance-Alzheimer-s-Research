@@ -34,11 +34,11 @@ def run_multi_proc() :
 
     runprocess = calculateParallel( threads=cpu_count)
 
-dataset_type='train'
+dataset_type='test'
 # config = './config.yml'
-config = '../script/configs/download/config_flowing.yml'
+#config = '../script/configs/download/config_flowing.yml'
 #config = '../script/configs/download/config_stall.yml'
-# config = '../script/configs/download/config_test_dataset.yml'
+config = '../script/configs/download/config_test_dataset.yml'
 
 with open (config , 'rb') as f:
     config = yaml.load(f ,Loader=yaml.FullLoader)
