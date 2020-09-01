@@ -6,7 +6,10 @@ The full training dataset contains over 570,000 videos, which is around 1.4 tera
 The target vessel segment for each video is outlined in orange. The first notebook download a video and then extract the contents of inside the orange area.
 The extracted area in the video converted to a 3d tensor then it will compresed and stored in the local memory.\
 Data_Downloader [Script](./script/prepare_dataset.py) [It is **Multiprocessing script**] - [Notbook](./notebook/01_dataset_analysis.ipynb)\
+- video will be downloaded from the server: \
 ![enter image description here](./doc/images/105668_2.gif)
+- outlined area will be detected: \
+![enter image description here](./doc/images/outlined_area.png)
 
 
 
