@@ -18,7 +18,14 @@ This model contains 3D-EfficientNet as a feature detection and feature will be p
 
 ![enter image description here](./doc/images/Model_arch.png)
 
+#  Pytorch:
+ [Dataset and Dataloder classes][Notbook](./notebook/03_make_data_lodder.ipynb)\
+ [Train model ][Notbook](./notebook/notebook/07_train.ipynb)
 
+#  Keras:
+ [Dataset Genrator][Script (class)](./Klib/dataset/dataset_factory.py)\
+ [Train model ][Script](./script/train.py)
+ [Test model ] [Script](./script/test_Keras.py)
 
 
 
