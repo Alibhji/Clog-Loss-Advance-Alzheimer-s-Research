@@ -13,7 +13,7 @@ Data_Downloader [Script](./script/prepare_dataset.py) [It is **Multiprocessing s
 - Cropped Video is conveted to a tensor: \
 ![enter image description here](./doc/images/2020-09-01_2-13-05.gif) ![enter image description here](./doc/images/2020-09-01_12-23-43_2.gif)
 
-# **3D-CNN-LSTM Model**: 
+# **3D-CNN-LSTM classifier Model**: 
 This model contains 3D-EfficientNet as a feature detection and feature will be passed through a LSTM network to learn relation of between video frame sequence and a fully connected layer is attached on top of that to calssify the flowing or cloged vessels.
 
 ![enter image description here](./doc/images/Model_arch.png)
