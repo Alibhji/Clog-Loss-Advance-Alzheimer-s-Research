@@ -10,6 +10,8 @@ Data_Downloader [Script](./script/prepare_dataset.py) [It is **Multiprocessing s
 ![enter image description here](./doc/images/105668_2.gif)
 - outlined area will be detected: \
 ![enter image description here](./doc/images/outlined_area.png)
+- Cropped Video is conveted to a tensor: \
+![enter image description here](./doc/images/2020-09-01_2-13-05.gif)
 
 
 
