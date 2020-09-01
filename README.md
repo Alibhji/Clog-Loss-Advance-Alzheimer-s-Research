@@ -13,6 +13,9 @@ Data_Downloader [Script](./script/prepare_dataset.py) [It is **Multiprocessing s
 - Cropped Video is conveted to a tensor: \
 ![enter image description here](./doc/images/2020-09-01_2-13-05.gif)
 
+- 3D-CNN-LSTM Model: \
+![enter image description here](./doc/images/Model_arch.png)
+
 
 
 
