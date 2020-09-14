@@ -20,7 +20,7 @@ This model contains 3D-EfficientNet as a feature detection and feature will be p
 
 #  Pytorch:
  [Dataset and Dataloder classes][Notbook](./notebook/03_make_data_lodder.ipynb)\
- [Train model ][Notbook](./notebook/notebook/07_train.ipynb)
+ [Train model ][Notbook](https://github.com/Alibhji/Clog-Loss-Advance-Alzheimer-s-Research/blob/ubuntu/notebook/07_train.ipynb)
 
 #  Keras:
  [Dataset Genrator][Script (class)](./Klib/dataset/dataset_factory.py)\
